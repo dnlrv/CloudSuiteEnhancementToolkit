@@ -20,15 +20,15 @@ function global:Query-RedRock
     This function outputs a PSCustomObject with the requested data.
 
     .EXAMPLE
-    C:\PS> Query-VaultRedRock -SQLQuery "SELECT * FROM Sets"
+    C:\PS> Query-RedRock -SQLQuery "SELECT * FROM Sets"
     This query will return all rows and all property fields from the Sets table.
 
     .EXAMPLE
-    C:\PS> Query-VaultRedRock -SQLQuery "SELECT COUNT(*) FROM Servers"
+    C:\PS> Query-RedRock -SQLQuery "SELECT COUNT(*) FROM Servers"
     This query will return a count of all the rows in the Servers table.
 
     .EXAMPLE
-    C:\PS> Query-VaultRedRock -SQLQuery "SELECT Name,User AS AccountName FROM VaultAccount LIMIT 10"
+    C:\PS> Query-RedRock -SQLQuery "SELECT Name,User AS AccountName FROM VaultAccount LIMIT 10"
     This query will return the Name property and the User property (renamed AS AccountName) from the VaultAccount table and limiting those results to 10 rows.
     #>
     param

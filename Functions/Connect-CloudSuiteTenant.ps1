@@ -134,8 +134,8 @@ function global:Connect-CloudSuiteTenant
                 if (-Not ($CloudSuiteConnections | Where-Object {$_.PodFqdn -eq $Connection.PodFqdn}))
                 {
                     # add a new CloudSuiteConnection object and add it to our $CloudSuiteConnectionsList
-                    $obj = [CloudSuiteConnection]::new($Connection.PodFqdn,$Connection,$global:CloudSuiteSessionInformation)
-                    $global:CloudSuiteConnections.Add($obj) | Out-Null
+                    $obj = New-Object -ArgumentList ($Connection.PodFqdn, $Connection, $global:CloudSuiteSessionInformation)
+					$global:CloudSuiteConnections.Add($obj) | Out-Null
                 }
 				
 				# Return information values to confirm connection success
@@ -328,8 +328,8 @@ function global:Connect-CloudSuiteTenant
                                 if (-Not ($CloudSuiteConnections | Where-Object {$_.PodFqdn -eq $Connection.PodFqdn}))
                                 {
                                     # add a new CloudSuiteConnection object and add it to our $CloudSuiteConnectionsList
-                                    $obj = [CloudSuiteConnection]::new($Connection.PodFqdn,$Connection,$global:CloudSuiteSessionInformation)
-                                    $global:CloudSuiteConnections.Add($obj) | Out-Null
+                                    $obj = New-Object CloudSuiteConnection -ArgumentList ($Connection.PodFqdn,$Connection,$global:CloudSuiteSessionInformation)
+									$global:CloudSuiteConnections.Add($obj) | Out-Null
                                 }
 				
 				                # Return information values to confirm connection success

@@ -75,8 +75,8 @@ function global:Invoke-CloudSuiteAPI
     }# Try
     Catch
     {
-        $LastError = [CloudSuiteAPIException]::new("A CloudSuiteAPI error has occured. Check `$LastError for more information")
-        $LastError.APICall = $APICall
+        $LastError = New-Object CloudSuiteAPIException -ArgumentList ("A CloudSuiteAPI error has occured. Check `$LastError for more information")
+		$LastError.APICall = $APICall
         $LastError.Payload = $Body
         $LastError.Response = $Response
         $LastError.ErrorMessage = $_.Exception.Message
