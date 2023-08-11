@@ -3,7 +3,7 @@ A variety of functions to make working with Delinea's Cloud Suite even easier
 
 # CloudSuiteEnhancementToolkit
 ```
-$CloudSuiteEnhancementToolkit = ([ScriptBlock]::Create(((Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/dnlrv/CloudSuiteEnhancementToolkit/main/CloudSuiteEnhancementToolkit.ps1').Content))); . $CloudSuiteEnhancementToolkit
+$CloudSuiteEnhancementToolkit = ([ScriptBlock]::Create(((Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/DelineaPS/CloudSuiteEnhancementToolkit/main/CloudSuiteEnhancementToolkit.ps1').Content))); . $CloudSuiteEnhancementToolkit
 ```
 
 ## CloudSuiteEnhancementToolkit (local)
