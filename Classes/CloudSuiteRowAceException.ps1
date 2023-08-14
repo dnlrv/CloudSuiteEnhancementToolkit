@@ -2,7 +2,7 @@
 class CloudSuiteRowAceException : System.Exception
 {
     [PSCustomObject]$RowAce
-    [PSCustomObject]$PlatformPermission
+    [PSCustomObject]$CloudSuitePermission
     [System.String]$ErrorMessage
 
     CloudSuiteRowAceException([System.String]$message) : base ($message) {}
