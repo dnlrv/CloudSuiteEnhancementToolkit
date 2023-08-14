@@ -147,73 +147,73 @@ function global:Get-CloudSuiteAccount
     # if the base sqlquery isn't null
     if ($basesqlquery -ne $null)
     {
-		# multithread start
-		$RunspacePool = [runspacefactory]::CreateRunspacePool(1,12)
-		$RunspacePool.ApartmentState = 'STA'
-		$RunspacePool.ThreadOptions = 'ReUseThread'
-		$RunspacePool.Open()
+        # multithread start
+        $RunspacePool = [runspacefactory]::CreateRunspacePool(1,12)
+        $RunspacePool.ApartmentState = 'STA'
+        $RunspacePool.ThreadOptions = 'ReUseThread'
+        $RunspacePool.Open()
 
-		# jobs ArrayList
-		$Jobs = New-Object System.Collections.ArrayList
+        # jobs ArrayList
+        $Jobs = New-Object System.Collections.ArrayList
 
-		foreach ($query in $basesqlquery)
-		{
-			$PowerShell = [PowerShell]::Create()
-			$PowerShell.RunspacePool = $RunspacePool
-	
-			# Counter for the account objects
-			$g++; Write-Progress -Activity "Getting Accounts" -Status ("{0} out of {1} Complete" -f $g,$basesqlquery.Count) -PercentComplete ($g/($basesqlquery | Measure-Object | Select-Object -ExpandProperty Count)*100)
-			
-			# for each script in our CloudSuiteEnhancementToolkitScriptBlocks
-			foreach ($script in $global:CloudSuiteEnhancementToolkitScriptBlocks)
-			{
-				# add it to this thread as a script, this makes all classes and functions available to this thread
-				[void]$PowerShell.AddScript($script.ScriptBlock)
-			}
-			[void]$PowerShell.AddScript(
-			{
-				Param
-				(
-					$CloudSuiteConnection,
-					$CloudSuiteSessionInformation,
-					$query
-				)
-			$global:CloudSuiteConnection         = $CloudSuiteConnection
-			$global:CloudSuiteSessionInformation = $CloudSuiteSessionInformation
+        foreach ($query in $basesqlquery)
+        {
+            $PowerShell = [PowerShell]::Create()
+            $PowerShell.RunspacePool = $RunspacePool
+        
+            # Counter for the account objects
+            $g++; Write-Progress -Activity "Getting Accounts" -Status ("{0} out of {1} Complete" -f $g,$basesqlquery.Count) -PercentComplete ($g/($basesqlquery | Measure-Object | Select-Object -ExpandProperty Count)*100)
+            
+            # for each script in our CloudSuiteEnhancementToolkitScriptBlocks
+            foreach ($script in $global:CloudSuiteEnhancementToolkitScriptBlocks)
+            {
+                # add it to this thread as a script, this makes all classes and functions available to this thread
+                [void]$PowerShell.AddScript($script.ScriptBlock)
+            }
+            [void]$PowerShell.AddScript(
+            {
+                Param
+                (
+                    $CloudSuiteConnection,
+                    $CloudSuiteSessionInformation,
+                    $query
+                )
+                $global:CloudSuiteConnection         = $CloudSuiteConnection
+                $global:CloudSuiteSessionInformation = $CloudSuiteSessionInformation
 
-			# minor placeholder to hold account type in case of all call
-            [System.String]$accounttype = $null
+                # minor placeholder to hold account type in case of all call
+                [System.String]$accounttype = $null
 
-            if ($query.CloudProviderID -ne $null) { $accounttype = "Cloud"    }
-            if ($query.DomainID -ne $null)        { $accounttype = "Domain"   }
-            if ($query.DatabaseID -ne $null)      { $accounttype = "Database" }
-            if ($query.Host -ne $null)            { $accounttype = "Local"    }
+                if ($query.CloudProviderID -ne $null) { $accounttype = "Cloud"    }
+                if ($query.DomainID -ne $null)        { $accounttype = "Domain"   }
+                if ($query.DatabaseID -ne $null)      { $accounttype = "Database" }
+                if ($query.Host -ne $null)            { $accounttype = "Local"    }
 
-            # create a new CloudSuite Account object
-			$account = New-Object CloudSuiteAccount -ArgumentList ($query, $accounttype)
+                # create a new CloudSuite Account object
+                $account = New-Object CloudSuiteAccount -ArgumentList ($query, $accounttype)
 
-			return $account
-	
-			})# [void]$PowerShell.AddScript(
-			[void]$PowerShell.AddParameter('CloudSuiteConnection',$global:CloudSuiteConnection)
-			[void]$PowerShell.AddParameter('CloudSuiteSessionInformation',$global:CloudSuiteSessionInformation)
-			[void]$PowerShell.AddParameter('query',$query)
-      		
-			$JobObject = @{}
-			$JobObject.Runspace   = $PowerShell.BeginInvoke()
-			$JobObject.PowerShell = $PowerShell
-	
-			$Jobs.Add($JobObject) | Out-Null
-		}# foreach ($query in $basesqlquery)
+                return $account
+        
+            })# [void]$PowerShell.AddScript(
+            [void]$PowerShell.AddParameter('CloudSuiteConnection',$global:CloudSuiteConnection)
+            [void]$PowerShell.AddParameter('CloudSuiteSessionInformation',$global:CloudSuiteSessionInformation)
+            [void]$PowerShell.AddParameter('query',$query)
+                
+            $JobObject = @{}
+            $JobObject.Runspace   = $PowerShell.BeginInvoke()
+            $JobObject.PowerShell = $PowerShell
+        
+            $Jobs.Add($JobObject) | Out-Null
+        }# foreach ($query in $basesqlquery)
 
-		foreach ($job in $jobs)
-		{
-			# Counter for the job objects
-			$p++; Write-Progress -Activity "Processing Accounts" -Status ("{0} out of {1} Complete" -f $p,$jobs.Count) -PercentComplete ($p/($jobs | Measure-Object | Select-Object -ExpandProperty Count)*100)
-			
-			$queries.Add($job.powershell.EndInvoke($job.RunSpace)) | Out-Null
-			$job.PowerShell.Dispose()
-		}# foreach ($job in $jobs)
+        foreach ($job in $jobs)
+        {
+            # Counter for the job objects
+            $p++; Write-Progress -Activity "Processing Accounts" -Status ("{0} out of {1} Complete" -f $p,$jobs.Count) -PercentComplete ($p/($jobs | Measure-Object | Select-Object -ExpandProperty Count)*100)
+            
+            $queries.Add($job.powershell.EndInvoke($job.RunSpace)) | Out-Null
+            $job.PowerShell.Dispose()
+        }# foreach ($job in $jobs)
     }# if ($query -ne $null)
     else
     {
