@@ -59,7 +59,7 @@ function global:ConvertFrom-DataToCloudSuiteSet
         foreach ($permissionrowace in $cloudsuiteset.PermissionRowAces)
         {
             # create a new PermissionRowAce object from that rowace data
-            $pra = [PermissionRowAce]::new($permissionrowace)
+            $pra = New-Object PermissionRowAce -ArgumentList ($permissionrowace)
 
             # add it to the PermissionRowAces ArrayList
             $rowaces.Add($pra) | Out-Null
@@ -75,7 +75,7 @@ function global:ConvertFrom-DataToCloudSuiteSet
         foreach ($memberrowace in $cloudsuiteset.MemberPermissionRowAces)
         {
             # create a new PermissionRowAce object from that rowace data
-            $pra = [PermissionRowAce]::new($memberrowace)
+            $pra = New-Object PermissionRowAce -ArgumentList ($memberrowace)
             
             # add it to the MemberPermissionRowAces ArrayList
             $memberrowaces.Add($pra) | Out-Null
