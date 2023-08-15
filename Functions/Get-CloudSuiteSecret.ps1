@@ -25,6 +25,10 @@ function global:Get-CloudSuiteSecret
     If the directory or file does not exist during ExportSecret(), the directory and file will be created. If the file
     already exists, then the file will be renamed and appended with a random 8 character string to avoid file name conflicts.
     
+    If this function gets all Secrets from the Cloud Suite Tenant, then everything will also be saved into the global
+    $CloudSuiteSecretBank variable. This makes it easier to reference these objects without having to make additional 
+    API calls.
+
     .PARAMETER Name
     Get a Cloud Suite Secret by it's Secret Name.
 
@@ -185,6 +189,12 @@ function global:Get-CloudSuiteSecret
 
 	# converting back to CloudSuiteSecret because multithreaded objects return an Automation object Type
 	$returned = ConvertFrom-DataToCloudSuiteSecret -DataSecrets $queries  
+
+    # if the All parameter set was used
+    if ($PSCmdlet.ParameterSetName -eq "All")
+    {
+        $global:CloudSuiteSecretBank = $returned
+    }
 	
 	return $returned
 }# global:Get-CloudSuiteSecret

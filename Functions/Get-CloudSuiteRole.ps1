@@ -11,6 +11,10 @@ function global:Get-CloudSuiteRole
     Gets a Role object from the Delinea Cloud Suite. This returns a CloudSuiteRole class object containing properties about
     the Role object. By default, Get-CloudSuiteRole without any parameters will get all Role objects in the CloudSuite. 
 
+	If this function gets all Roles from the Cloud Suite Tenant, then everything will also be saved into the global
+    $CloudSuiteRoleBank variable. This makes it easier to reference these objects without having to make additional 
+    API calls.
+
     .PARAMETER Name
     Gets only Roles with this name.
 
@@ -148,7 +152,13 @@ function global:Get-CloudSuiteRole
 	}
 
 	# converting back to CloudSuiteRole because multithreaded objects return an Automation object Type
-		$returned = ConvertFrom-DataToCloudSuiteRole -DataRoles $queries  
+	$returned = ConvertFrom-DataToCloudSuiteRole -DataRoles $queries
+
+	# if the All parameter set was used
+    if ($PSCmdlet.ParameterSetName -eq "All")
+    {
+        $global:CloudSuiteRoleBank = $returned
+    }
 	
 	#return $returned
 	return $returned

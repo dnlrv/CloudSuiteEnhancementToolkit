@@ -204,6 +204,12 @@ function global:Get-CloudSuiteSet
 	# converting back to CloudSuiteSet because multithreaded objects return an Automation object Type
   	$returned = ConvertFrom-DataToCloudSuiteSet -DataSets $queries
 
+    # if the All parameter set was used
+    if ($PSCmdlet.ParameterSetName -eq "All")
+    {
+        $global:CloudSuiteSetBank = $returned
+    }
+
     #return $returned
     return $returned
 }# function global:Get-CloudSuiteSet

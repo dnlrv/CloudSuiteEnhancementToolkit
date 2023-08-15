@@ -31,6 +31,10 @@ function global:Get-CloudSuiteAccount
     
     .VerifyPassword()
       - Verifies if this password on this Account is correct.
+    
+    If this function gets all Accounts from the Cloud Suite Tenant, then everything will also be saved into the global
+    $CloudSuiteAccountBank variable. This makes it easier to reference these objects without having to make additional 
+    API calls.
 
     .PARAMETER Type
     Gets only Accounts of this type. Currently only "Local","Domain","Database", or "Cloud" is supported.
@@ -221,7 +225,13 @@ function global:Get-CloudSuiteAccount
     }
 
 	# converting back to CloudSuiteAccount because multithreaded objects return an Automation object Type
-  	$returned = ConvertFrom-DataToCloudSuiteAccount -DataAccounts $queries  
+  	$returned = ConvertFrom-DataToCloudSuiteAccount -DataAccounts $queries
+
+    # if the All parameter set was used
+    if ($PSCmdlet.ParameterSetName -eq "All")
+    {
+        $global:CloudSuiteAccountBank = $returned
+    }
     
     #return $returned
     return $returned
