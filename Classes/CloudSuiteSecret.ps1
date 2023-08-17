@@ -17,6 +17,7 @@ class CloudSuiteSecret
     [PSCustomObject[]]$RowAces           # The RowAces (Permissions) of this Secret
     [System.Boolean]$WorkflowEnabled     # is Workflow enabled
     [PSCustomObject[]]$WorkflowApprovers # the Workflow Approvers for this Secret
+	[System.Collections.ArrayList]$SecretEvents = @{} 
 
     CloudSuiteSecret () {}
 
@@ -139,4 +140,26 @@ class CloudSuiteSecret
             }# "File" # File secrets will be created as their current file name
         }# Switch ($this.Type)
     }# ExportSecret()
+
+	getSecretEvents()
+	{
+		$this.SecretEvents.Clear()
+
+		$events = Query-RedRock -SQLQuery ("SELECT EventType,EventMessage AS Message,NormalizedUser AS User,whenOccurred FROM Event Where EventType LIKE 'Cloud.Server.DataVault%' AND DataVaultItemID = '{0}' AND whenOccurred > Datefunc('now',-365)" -f $this.ID)
+
+		if ($events.Count -gt 0)
+		{
+			foreach ($event in $events)
+			{
+				$obj = New-Object CloudSuiteSecretEvent
+
+				$obj.EventType    = $event.EventType
+				$obj.Message      = $event.Message
+				$obj.User         = $event.user
+				$obj.whenOccurred = $event.whenOccurred
+				
+				$this.SecretEvents.Add($obj) | Out-Null
+			}# foreach ($event in $events)
+		}# if ($events.Count -gt 0)
+	}# getSecretEvents()
 }# class CloudSuiteSecret

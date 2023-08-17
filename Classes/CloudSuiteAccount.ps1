@@ -20,6 +20,7 @@ class CloudSuiteAccount
     [PSCustomObject]$Vault
     [System.String]$SSName
     [System.String]$CheckOutID
+	[System.Collections.ArrayList]$AccountEvents = @{}
 
     CloudSuiteAccount() {}
 
@@ -180,4 +181,28 @@ class CloudSuiteAccount
         }
         return $false
     }# [System.Boolean] ManageAccount()
-}# class
+
+	getAccountEvents()
+	{
+		$this.AccountEvents.Clear()
+
+		$events = Query-RedRock -SQLQuery ("SELECT EventType,EventMessage AS Message,ComputerName AS SourceName,AccountName,NormalizedUser AS User,whenOccurred FROM Event Where EventType LIKE 'Cloud.Server.{0}Account%' AND ComputerName = '{1}' AND AccountName = '{2}' AND whenOccurred > Datefunc('now',-365)" -f $this.AccountType, $this.SourceName, $this.Username)
+
+		if ($events.Count -gt 0)
+		{
+			foreach ($event in $events)
+			{
+				$obj = New-Object CloudSuiteAccountEvent
+
+				$obj.EventType    = $event.EventType
+				$obj.Message      = $event.Message
+				$obj.SourceName   = $event.SourceName
+				$obj.AccountName  = $event.AccountName
+				$obj.User         = $event.user
+				$obj.whenOccurred = $event.whenOccurred
+				
+				$this.AccountEvents.Add($obj) | Out-Null
+			}# foreach ($event in $events)
+		}# if ($events.Count -gt 0)
+	}# getAccountEvents()
+}# class CloudSuiteAccount
