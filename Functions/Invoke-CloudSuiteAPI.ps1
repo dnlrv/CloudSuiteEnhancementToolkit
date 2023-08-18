@@ -80,6 +80,7 @@ function global:Invoke-CloudSuiteAPI
         $LastError.Payload = $Body
         $LastError.Response = $Response
         $LastError.ErrorMessage = $_.Exception.Message
+		$LastError.Exception = $_
         $global:LastError = $LastError
         Throw $_.Exception
     }

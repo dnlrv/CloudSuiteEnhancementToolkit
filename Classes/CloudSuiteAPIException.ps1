@@ -4,6 +4,7 @@ class CloudSuiteAPIException : System.Exception
     [System.String]$APICall
     [System.String]$Payload
     [System.String]$ErrorMessage
+	[PSCustomObject]$Exception
     [PSCustomObject]$Response
 
     CloudSuiteAPIException() {}
