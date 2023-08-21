@@ -155,11 +155,40 @@ class CloudSuiteSecret
 
 				$obj.EventType    = $event.EventType
 				$obj.Message      = $event.Message
-				$obj.User         = $event.user
+				$obj.User         = $event.User
 				$obj.whenOccurred = $event.whenOccurred
 				
 				$this.SecretEvents.Add($obj) | Out-Null
 			}# foreach ($event in $events)
 		}# if ($events.Count -gt 0)
 	}# getSecretEvents()
+
+	[System.Collections.ArrayList] reviewPermissions()
+	{
+		$ReviewedPermissions = New-Object System.Collections.ArrayList
+
+		foreach ($rowace in $this.RowAces)
+		{
+			$ssperms = ConvertTo-SecretServerPermission -Type Self -Name $this.Name -RowAce $rowace
+
+			$obj = New-Object PSCustomObject
+
+			$obj | Add-Member -MemberType NoteProperty -Name Type -Value $this.Type
+			$obj | Add-Member -MemberType NoteProperty -Name Name -Value $this.Name
+			$obj | Add-Member -MemberType NoteProperty -Name ParentPath -Value $this.ParentPath
+			$obj | Add-Member -MemberType NoteProperty -Name Description -Value $this.Description
+			$obj | Add-Member -MemberType NoteProperty -Name whenCreated -Value $this.whenCreated
+			$obj | Add-Member -MemberType NoteProperty -Name lastRetrieved -Value $this.lastRetrieved
+			$obj | Add-Member -MemberType NoteProperty -Name FileName -Value $this.SecretFileName
+			$obj | Add-Member -MemberType NoteProperty -Name PrincipalType -Value $rowace.PrincipalType
+			$obj | Add-Member -MemberType NoteProperty -Name PrincipalName -Value $rowace.PrincipalName
+			$obj | Add-Member -MemberType NoteProperty -Name isInherited -Value $rowace.isInherited
+			$obj | Add-Member -MemberType NoteProperty -Name PASPermissions -Value $rowace.CloudSuitePermission.GrantString
+			$obj | Add-Member -MemberType NoteProperty -Name SSPermissions -Value $ssperms.Permissions
+			$obj | Add-Member -MemberType NoteProperty -Name ID -Value $this.ID
+			
+			$ReviewedPermissions.Add($obj) | Out-Null
+		}# foreach ($rowace in $this.PermissionRowAces)
+		return $ReviewedPermissions
+	}# [System.Collections.ArrayList] reviewPermissions()
 }# class CloudSuiteSecret
