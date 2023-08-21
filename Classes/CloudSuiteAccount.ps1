@@ -205,4 +205,33 @@ class CloudSuiteAccount
 			}# foreach ($event in $events)
 		}# if ($events.Count -gt 0)
 	}# getAccountEvents()
+
+	[System.Collections.ArrayList] reviewPermissions()
+	{
+		$ReviewedPermissions = New-Object System.Collections.ArrayList
+
+		foreach ($rowace in $this.PermissionRowAces)
+		{
+			$ssperms = ConvertTo-SecretServerPermission -Type Self -Name $this.SSName -RowAce $rowace
+
+			$obj = New-Object PSCustomObject
+
+			$obj | Add-Member -MemberType NoteProperty -Name Type -Value $this.AccountType
+			$obj | Add-Member -MemberType NoteProperty -Name Source -Value $this.SourceName
+			$obj | Add-Member -MemberType NoteProperty -Name Username -Value $this.Username
+			$obj | Add-Member -MemberType NoteProperty -Name isManaged -Value $this.isManaged
+			$obj | Add-Member -MemberType NoteProperty -Name Healthy -Value $this.Healthy
+			$obj | Add-Member -MemberType NoteProperty -Name LastChange -Value $this.LastChange
+			$obj | Add-Member -MemberType NoteProperty -Name LastHealthCheck -Value $this.LastHealthCheck
+			$obj | Add-Member -MemberType NoteProperty -Name PrincipalType -Value $rowace.PrincipalType
+			$obj | Add-Member -MemberType NoteProperty -Name PrincipalName -Value $rowace.PrincipalName
+			$obj | Add-Member -MemberType NoteProperty -Name isInherited -Value $rowace.isInherited
+			$obj | Add-Member -MemberType NoteProperty -Name PASPermissions -Value $rowace.CloudSuitePermission.GrantString
+			$obj | Add-Member -MemberType NoteProperty -Name SSPermissions -Value $ssperms.Permissions
+			$obj | Add-Member -MemberType NoteProperty -Name ID -Value $this.ID
+			
+			$ReviewedPermissions.Add($obj) | Out-Null
+		}# foreach ($rowace in $this.PermissionRowAces)
+		return $ReviewedPermissions
+	}# [System.Collections.ArrayList] reviewPermissions()
 }# class CloudSuiteAccount
