@@ -83,22 +83,6 @@ class CloudSuiteAccount
 
     }# CloudSuiteAccount($account)
 
-    [System.Boolean] CheckOutPassword()
-    {
-        # if checkout is successful
-        if ($checkout = Invoke-CloudSuiteAPI -APICall ServerManage/CheckoutPassword -Body (@{ID = $this.ID} | ConvertTo-Json))
-        {   
-            # set these checkout fields
-            $this.Password = $checkout.Password
-            $this.CheckOutID = $checkout.COID
-        }# if ($checkout = Invoke-CloudSuiteAPI -APICall ServerManage/CheckoutPassword -Body (@{ID = $this.ID} | ConvertTo-Json))
-        else
-        {
-            return $false
-        }
-        return $true
-    }# [System.Boolean] CheckOutPassword()
-
     [System.Boolean] CheckInPassword()
     {
         # if CheckOutID isn't null
@@ -234,4 +218,93 @@ class CloudSuiteAccount
 		}# foreach ($rowace in $this.PermissionRowAces)
 		return $ReviewedPermissions
 	}# [System.Collections.ArrayList] reviewPermissions()
+
+	[System.Boolean]CheckoutPassword()
+	{
+		if ($global:CloudSuiteEnableClearTextPasswordsAndSecrets -eq $false)
+		{
+			# if the global Encrypted Key is not set
+			if (-Not ($global:CloudSuiteEncryptedKey))
+			{
+				Write-Warning ("No global encrypted key set. Use Set-CloudSuiteEncryptionKey to set one.")
+				throw "`$CloudSuiteEnableClearTextPasswordsAndSecrets is `$true and no global key is set."
+			}
+			else # encrypted is true and key is set
+			{
+				# if checkout is successful
+				if ($checkout = Invoke-CloudSuiteAPI -APICall ServerManage/CheckoutPassword -Body (@{ID = $this.ID} | ConvertTo-Json))
+				{   
+					# set these checkout fields
+					$pw = ConvertTo-SecureString -AsPlainText -Force -String $checkout.Password
+					$this.Password = $pw | ConvertFrom-SecureString -Key $global:CloudSuiteEncryptedKey
+					$this.CheckOutID = $checkout.COID
+				}# if ($checkout = Invoke-CloudSuiteAPI -APICall ServerManage/CheckoutPassword -Body (@{ID = $this.ID} | ConvertTo-Json))
+				else
+				{
+					return $false
+				}
+				return $true
+			}
+		}# if ($global:CloudSuiteClearTextPasswordsAndSecrets -eq $false)
+		else
+		{
+			# if checkout is successful
+			if ($checkout = Invoke-CloudSuiteAPI -APICall ServerManage/CheckoutPassword -Body (@{ID = $this.ID} | ConvertTo-Json))
+			{   
+				# set these checkout fields
+				$this.Password = $checkout.Password
+				$this.CheckOutID = $checkout.COID
+			}# if ($checkout = Invoke-CloudSuiteAPI -APICall ServerManage/CheckoutPassword -Body (@{ID = $this.ID} | ConvertTo-Json))
+			else
+			{
+				return $false
+			}
+			return $true
+		}# else
+	}# [System.Boolean]CheckoutPassword()
+
+	[System.String]decryptPassword($key)
+	{
+		# if the provided key doesn't exist
+		if (-Not ($key))
+		{
+			Write-Warning ("No key provided. Use Set-CloudSuiteEncryptionKey -ReturnAsVariable to get one.")
+			throw "No key provided."
+		}
+
+		Try # to convert this to plain text using the provided key
+		{
+			$pw = $this.Password | ConvertTo-SecureString -Key $key
+			$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($pw)
+			$clearpassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+		}
+		Catch [System.ArgumentNullException] # if $pw is null that is due to the key being invalid
+		{
+			throw "Key is invalid."
+		}
+		
+		return $clearpassword
+	}# [System.String]decryptPassword($key)
+
+	[System.String]decryptPassword()
+	{
+		# if the global Encrypted Key is not set
+		if (-Not ($global:CloudSuiteEncryptedKey))
+		{
+			Write-Warning ("No global encrypted key set. Use Set-CloudSuiteEncryptionKey to set one.")
+			throw "No global encrypted key set."
+		}
+
+		Try # to convert this to plain text using the global key
+		{
+			$pw = $this.Password | ConvertTo-SecureString -Key $global:CloudSuiteEncryptedKey
+			$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($pw)
+			$clearpassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+		}
+		Catch [System.ArgumentNullException] # if $pw is null that is due to the key being invalid
+		{
+			throw "Key is invalid."
+		}
+		return $clearpassword
+	}# [System.String]decryptPassword()
 }# class CloudSuiteAccount

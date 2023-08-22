@@ -58,6 +58,12 @@ $global:CloudSuiteEnhancementToolkitScriptBlocks = $CloudSuiteEnhancementToolkit
 # initializing a List[CloudSuiteConnection] if it is empty or null
 $global:CloudSuiteConnections = New-Object System.Collections.Generic.List[CloudSuiteConnection]
 
+### setting global config variables
+
+# by default, all checkouts/retrieves will be encrypted, set this to true to have
+# clear text passwords/secrets instead
+$global:CloudSuiteEnableClearTextPasswordsAndSecrets = $false # false by default
+
 #######################################
 #endregion ############################
 #######################################
