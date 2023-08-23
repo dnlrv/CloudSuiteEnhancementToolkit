@@ -100,6 +100,21 @@ function global:ConvertFrom-DataToCloudSuiteAccount
 
         # add these approvers to our CloudSuiteAccount object
         $obj.WorkflowApprovers = $approvers
+
+		# new ArrayList for the CloudSuiteAccount property
+		$accountevents = New-Object System.Collections.ArrayList
+
+		# for each accountevent in our AccountEvent object
+		foreach ($accountevent in $CloudSuiteaccount.AccountEvents)
+		{
+			$event = New-Object CloudSuiteAccountEvent -ArgumentList ($accountevent)
+
+			# add it to the accountevents ArrayList
+			$accountevents.Add($event) | Out-Null
+		}# foreach ($accountevent in $CloudSuiteaccount.AccountEvents)
+
+		# add these accountevents to our CloudSuiteAccount object
+		$obj.AccountEvents = $accountevents
         
         # add this object to our return ArrayList
         $NewCloudSuiteAccounts.Add($obj) | Out-Null

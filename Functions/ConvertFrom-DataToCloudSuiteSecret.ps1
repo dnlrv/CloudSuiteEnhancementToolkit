@@ -91,6 +91,21 @@ function global:ConvertFrom-DataToCloudSuiteSecret
 
         # add these approvers to our CloudSuiteSecret object
         $obj.WorkflowApprovers = $approvers
+
+		# new ArrayList for the CloudSuiteSecret property
+		$secretevents = New-Object System.Collections.ArrayList
+
+		# for each secretevent in our SecretEvent object
+		foreach ($secretevent in $cloudsuitesecret.SecretEvents)
+		{
+			$event = New-Object CloudSuiteSecretEvent -ArgumentList ($secretevent)
+
+			# add it to the secretevents ArrayList
+			$secretevents.Add($event) | Out-Null
+		}# foreach ($secretevent in $CloudSuitesecret.SecretEvents)
+
+		# add these secretevents to our CloudSuiteSecret object
+		$obj.SecretEvents = $secretevents
         
         # add this object to our return ArrayList
         $NewCloudSuiteSecrets.Add($obj) | Out-Null
@@ -98,6 +113,6 @@ function global:ConvertFrom-DataToCloudSuiteSecret
 
     # return the ArrayList
     return $NewCloudSuiteSecrets
-}# function global:ConvertFrom-DataToCloudSuiteAccount
+}# function global:ConvertFrom-DataToCloudSuiteSecret
 #endregion
 ###########
