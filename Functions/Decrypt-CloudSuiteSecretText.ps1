@@ -1,20 +1,20 @@
 ###########
-#region ### global:Decrypt-CloudSuiteAccountPassword # Decrypts the password to the provided CloudSuiteAccount objects
+#region ### global:Decrypt-CloudSuiteSecretText # Decrypts the SecretText to the provided CloudSuiteSecret objects
 ###########
-function global:Decrypt-CloudSuiteAccountPassword
+function global:Decrypt-CloudSuiteSecretText
 {
     <#
     .SYNOPSIS
-    Decrypts the password for the provided CloudSuiteAccount objects. The encrypted password must already exist in the Password field.
+    Decrypts the Secret Text for the provided CloudSuiteSecret objects. The encrypted Secret Text must already exist in the SecretText field.
 
     .DESCRIPTION
-	This function will attempt to decrypt the password for the provided CloudSuiteAccount objects into cleartext. The encrypted password
-	must already be stored in the Password field of the CloudSuiteAccount object.
+	This function will attempt to decrypt the Secret Text for the provided CloudSuiteSecret objects into cleartext. The encrypted Secret Text
+	must already be stored in the SecretText field of the CloudSuiteSecret object.
 
-	By default, a global encryption key needs to be set in order to decrypt the password. Alternatively, the -Key paramter
+	By default, a global encryption key needs to be set in order to decrypt the Secret Text. Alternatively, the -Key paramter
 	can be used to also provide an encryption key.
 
-	If successful, the cleartext password will be stored in the Password field.
+	If successful, the cleartext Secret Text will be stored in the SecretText field.
 
 	.INPUTS
     None. You can't redirect or pipe input to this function.
@@ -22,27 +22,27 @@ function global:Decrypt-CloudSuiteAccountPassword
     .OUTPUTS
     This function does not return any objects.
 
-    .PARAMETER CloudSuiteAccounts
-    The CloudSuiteAccount objects to checkout the password.
+    .PARAMETER CloudSuiteSecrets
+    The CloudSuiteSecret objects to checkout the Secret Text.
 
 	.PARAMETER Key
 	The key to provide for decryption. This overrides the global key.
 
 	.EXAMPLE
-    C:\PS> Decrypt-CloudSuiteAccountPassword -CloudSuiteAccounts $CloudSuiteAccounts
-    This function will decrypt the password of the provided accounts and store the clear text password in the
-	Password field. A global encryption key must be set for this to be successful.
+    C:\PS> Decrypt-CloudSuiteSecretText -CloudSuiteSecrets $CloudSuiteSecrets
+    This function will decrypt the Secret Text of the provided secrets and store the clear text Secret Text in the
+	SecretText field. A global encryption key must be set for this to be successful.
 
 	.EXAMPLE
-    C:\PS> Decrypt-CloudSuiteAccountPassword -CloudSuiteAccounts $CloudSuiteAccounts -Key $Key
-    This function will decrypt the password of the provided accounts using the supplied encryption key instead 
-	of the global encryption key and store the clear text password in the Password field.
+    C:\PS> Decrypt-CloudSuiteSecretText -CloudSuiteSecrets $CloudSuiteSecrets -Key $Key
+    This function will decrypt the Secret Text of the provided secrets using the supplied encryption key instead 
+	of the global encryption key and store the clear text Secret Text in the SecretText field.
     #>
     [CmdletBinding(DefaultParameterSetName="All")]
     param
     (
-        [Parameter(Mandatory = $true, Position = 0, HelpMessage = "The CloudSuiteAccount objects to checkout.")]
-        [PSTypeName('CloudSuiteAccount')]$CloudSuiteAccounts,
+        [Parameter(Mandatory = $true, Position = 0, HelpMessage = "The CloudSuiteSecret objects to retrieve.")]
+        [PSTypeName('CloudSuiteSecret')]$CloudSuiteSecrets,
 
 		[Parameter(Mandatory = $false, Position = 1, HelpMessage = "The key to provide for decryption.")]
 		[Byte[]]$Key
@@ -71,7 +71,6 @@ function global:Decrypt-CloudSuiteAccountPassword
 	# jobs ArrayList
 	$Jobs = New-Object System.Collections.ArrayList
 
-
 	# if a Key was provided, use that key
 	if ($PSBoundParameters.ContainsKey('Key'))
 	{
@@ -82,21 +81,28 @@ function global:Decrypt-CloudSuiteAccountPassword
 		$keytouse = $global:CloudSuiteEncryptedKey
 	}
 
-	# for each CloudSuiteAccount passed
-	foreach ($cloudsuiteaccount in $CloudSuiteAccounts)
+	# for each CloudSuiteSecret passed
+	foreach ($cloudsuitesecret in $CloudSuiteSecrets)
 	{
-		# if the Password field is null or empty, skip it
-		if ([System.String]::IsNullOrEmpty($cloudsuiteaccount.Password))
+		# if the Secret is a File Secret
+		if ($cloudsuitesecret.Type -eq "File")
 		{
-			Write-Verbose ("Account [{0}] password field is null" -f $cloudsuiteaccount.SSName)
+			Write-Verbose ("Secret [{0}] is a File Secret." -f $cloudsuitesecret.Name)
+			continue
+		}
+
+		# if the SecretText field is null or empty, skip it
+		if ([System.String]::IsNullOrEmpty($cloudsuitesecret.SecretText))
+		{
+			Write-Verbose ("Secret [{0}] SecretText field is null" -f $cloudsuitesecret.Name)
 			continue
 		}
 
 		$PowerShell = [PowerShell]::Create()
 		$PowerShell.RunspacePool = $RunspacePool
 	
-		# Counter for the account objects
-		$g++; Write-Progress -Activity "Getting Accounts" -Status ("{0} out of {1} Complete" -f $g,$CloudSuiteAccounts.Count) -PercentComplete ($g/($CloudSuiteAccounts | Measure-Object | Select-Object -ExpandProperty Count)*100)
+		# Counter for the secret objects
+		$g++; Write-Progress -Activity "Getting Secrets" -Status ("{0} out of {1} Complete" -f $g,$CloudSuiteSecrets.Count) -PercentComplete ($g/($CloudSuiteSecrets | Measure-Object | Select-Object -ExpandProperty Count)*100)
 		
 		# for each script in our CloudSuiteEnhancementToolkitScriptBlocks
 		foreach ($script in $global:CloudSuiteEnhancementToolkitScriptBlocks)
@@ -111,32 +117,32 @@ function global:Decrypt-CloudSuiteAccountPassword
 				$CloudSuiteConnection,
 				$CloudSuiteSessionInformation,
 				$keytouse,
-				$cloudsuiteaccount
+				$cloudsuitesecret
 			)
 			$global:CloudSuiteConnection                         = $CloudSuiteConnection
 			$global:CloudSuiteSessionInformation                 = $CloudSuiteSessionInformation
 			
-			$cloudsuiteaccount.Password = $cloudsuiteaccount.decryptPassword($keytouse)
+			$cloudsuitesecret.SecretText = $cloudsuitesecret.decryptSecret($keytouse)
 			
-			return $cloudsuiteaccount
+			return $cloudsuitesecret
 	
 		})# [void]$PowerShell.AddScript(
 		[void]$PowerShell.AddParameter('CloudSuiteConnection',$global:CloudSuiteConnection)
 		[void]$PowerShell.AddParameter('CloudSuiteSessionInformation',$global:CloudSuiteSessionInformation)
 		[void]$PowerShell.AddParameter('keytouse',$keytouse)
-		[void]$PowerShell.AddParameter('cloudsuiteaccount',$cloudsuiteaccount)
+		[void]$PowerShell.AddParameter('cloudsuitesecret',$cloudsuitesecret)
 			
 		$JobObject = @{}
 		$JobObject.Runspace   = $PowerShell.BeginInvoke()
 		$JobObject.PowerShell = $PowerShell
 	
 		$Jobs.Add($JobObject) | Out-Null
-	}# foreach ($cloudsuiteaccount in $CloudSuiteAccounts)
+	}# foreach ($cloudsuitesecret in $CloudSuiteSecrets)
 
 	foreach ($job in $jobs)
 	{
 		# Counter for the job objects
-		$p++; Write-Progress -Activity "Processing Accounts" -Status ("{0} out of {1} Complete" -f $p,$jobs.Count) -PercentComplete ($p/($jobs | Measure-Object | Select-Object -ExpandProperty Count)*100)
+		$p++; Write-Progress -Activity "Processing Secrets" -Status ("{0} out of {1} Complete" -f $p,$jobs.Count) -PercentComplete ($p/($jobs | Measure-Object | Select-Object -ExpandProperty Count)*100)
 		
 		$processed.Add($job.powershell.EndInvoke($job.RunSpace)) | Out-Null
 		$job.PowerShell.Dispose()
@@ -145,6 +151,6 @@ function global:Decrypt-CloudSuiteAccountPassword
 	# closing the pool
 	$RunspacePool.Close()
 	$RunspacePool.Dispose()
-}# function global:Decrypt-CloudSuiteAccountPassword
+}# function global:Decrypt-CloudSuiteSecretText
 #endregion
 ###########
