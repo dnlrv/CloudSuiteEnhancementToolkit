@@ -75,26 +75,6 @@ class CloudSuiteSecret
         }
     }# CloudSuiteSecret ($secretinfo)
 
-    # method to retrieve secret content
-    RetrieveSecret()
-    {
-        Switch ($this.Type)
-        {
-            "Text" # Text secrets will add the Secret Contets to the SecretText property
-            {
-                $this.SecretText = Invoke-CloudSuiteAPI -APICall ServerManage/RetrieveSecretContents -Body (@{ ID = $this.ID } | ConvertTo-Json) `
-                    | Select-Object -ExpandProperty SecretText
-                break
-            }
-            "File" # File secrets will prepare the FileDownloadUrl for the Export
-            {
-                $this.SecretFilePath = Invoke-CloudSuiteAPI -APICall ServerManage/RequestSecretDownloadUrl -Body (@{ secretID = $this.ID } | ConvertTo-Json) `
-                    | Select-Object -ExpandProperty Location
-                break
-            }
-        }# Switch ($this.Type)
-    }# RetrieveSecret()
-
     # method to export secret content to files
     ExportSecret()
     {
@@ -191,4 +171,109 @@ class CloudSuiteSecret
 		}# foreach ($rowace in $this.PermissionRowAces)
 		return $ReviewedPermissions
 	}# [System.Collections.ArrayList] reviewPermissions()
+
+	# method to retrieve secret content
+	[System.Boolean] RetrieveSecret()
+	{
+		if ($this.Type -eq "Text")
+		{
+			if ($global:CloudSuiteEnableClearTextPasswordsAndSecrets -eq $false)
+			{
+				# if the global Encrypted Key is not set
+				if (-Not ($global:CloudSuiteEncryptedKey))
+				{
+					Write-Warning ("No global encrypted key set. Use Set-CloudSuiteEncryptionKey to set one.")
+					throw "`$CloudSuiteEnableClearTextPasswordsAndSecrets is `$true and no global key is set."
+				}
+				else # encrypted is true and key is set
+				{
+					# if retrieve is successful
+					if ($retrieve = Invoke-CloudSuiteAPI -APICall ServerManage/RetrieveSecretContents -Body (@{ ID = $this.ID } | ConvertTo-Json))
+					{   
+						# set these SecretText fields
+						$pw = ConvertTo-SecureString -AsPlainText -Force -String $retrieve.SecretText
+						$this.SecretText = $pw | ConvertFrom-SecureString -Key $global:CloudSuiteEncryptedKey
+					}# if ($retrieve = Invoke-CloudSuiteAPI -APICall ServerManage/RetrieveSecretContents -Body (@{ ID = $this.ID } | ConvertTo-Json))
+					else
+					{
+						return $false
+					}
+					return $true
+				}# else
+			}# if ($global:CloudSuiteClearTextPasswordsAndSecrets -eq $false)
+			else
+			{
+				# if retrieve is successful
+				if ($retrieve = Invoke-CloudSuiteAPI -APICall ServerManage/RetrieveSecretContents -Body (@{ ID = $this.ID } | ConvertTo-Json))
+				{   
+					# set these checkout fields
+					$this.SecretText = $retrieve.SecretText
+				}# if ($retrieve = Invoke-CloudSuiteAPI -APICall ServerManage/RetrieveSecretContents -Body (@{ ID = $this.ID } | ConvertTo-Json))
+				else
+				{
+					return $false
+				}
+				return $true
+			}# else
+		}# if ($this.Type -eq "Text")
+		else # this is a file secret
+		{
+			# if retrieve is successful
+			if ($retrieve = Invoke-CloudSuiteAPI -APICall ServerManage/RequestSecretDownloadUrl -Body (@{ secretID = $this.ID } | ConvertTo-Json))
+			{
+				$this.SecretFilePath = $retrieve.Location
+			}
+			else
+			{
+				return $false
+			}
+			return $true
+		}
+		return $false
+	}# [System.Boolean] RetrieveSecret()
+
+	[System.String] decryptSecret($key)
+	{
+		# if the provided key doesn't exist
+		if (-Not ($key))
+		{
+			Write-Warning ("No key provided. Use Set-CloudSuiteEncryptionKey -ReturnAsVariable to get one.")
+			throw "No key provided."
+		}
+
+		Try # to convert this to plain text using the provided key
+		{
+			$pw = $this.SecretText | ConvertTo-SecureString -Key $key
+			$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($pw)
+			$clearsecret = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+		}
+		Catch [System.ArgumentNullException] # if $pw is null that is due to the key being invalid
+		{
+			throw "Key is invalid."
+		}
+		
+		return $clearsecret
+	}# [System.String]decryptSecret($key)
+
+	[System.String] decryptSecret()
+	{
+		# if the global Encrypted Key is not set
+		if (-Not ($global:CloudSuiteEncryptedKey))
+		{
+			Write-Warning ("No global encrypted key set. Use Set-CloudSuiteEncryptionKey to set one.")
+			throw "No global encrypted key set."
+		}
+
+		Try # to convert this to plain text using the global key
+		{
+			$pw = $this.SecretText | ConvertTo-SecureString -Key $global:CloudSuiteEncryptedKey
+			$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($pw)
+			$clearsecret = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+		}
+		Catch [System.ArgumentNullException] # if $pw is null that is due to the key being invalid
+		{
+			throw "Key is invalid."
+		}
+		return $clearsecret
+	}# [System.String]decryptSecret()
 }# class CloudSuiteSecret
