@@ -183,7 +183,7 @@ class CloudSuiteSecret
 				if (-Not ($global:CloudSuiteEncryptedKey))
 				{
 					Write-Warning ("No global encrypted key set. Use Set-CloudSuiteEncryptionKey to set one.")
-					throw "`$CloudSuiteEnableClearTextPasswordsAndSecrets is `$true and no global key is set."
+					throw "`$CloudSuiteEnableClearTextPasswordsAndSecrets is `$false and no global key is set."
 				}
 				else # encrypted is true and key is set
 				{
