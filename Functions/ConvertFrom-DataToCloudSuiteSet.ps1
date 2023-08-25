@@ -48,9 +48,11 @@ function global:ConvertFrom-DataToCloudSuiteSet
         $obj.ObjectType     = $cloudsuiteset.ObjectType
         $obj.Name           = $cloudsuiteset.Name
         $obj.ID             = $cloudsuiteset.ID
-        $obj.whenCreated    = $cloudsuiteset.whenCreated
         $obj.ParentPath     = $cloudsuiteset.ParentPath
         $obj.PotentialOwner = $cloudsuiteset.PotentialOwner
+
+		# DateTime null checks
+		if ($cloudsuiteset.whenCreated -ne $null) { $obj.whenCreated    = $cloudsuiteset.whenCreated }
 
         # new ArrayList for the PermissionRowAces property
         $rowaces = New-Object System.Collections.ArrayList
