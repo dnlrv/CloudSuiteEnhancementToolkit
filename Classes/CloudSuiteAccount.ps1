@@ -198,6 +198,20 @@ class CloudSuiteAccount
 		{
 			$ssperms = ConvertTo-SecretServerPermission -Type Self -Name $this.SSName -RowAce $rowace
 
+			$lastEvent = New-Object PSCustomObject
+
+			$lastEvent | Add-Member -MemberType NoteProperty -Name whenOccurred -Value $null
+			$lastEvent | Add-Member -MemberType NoteProperty -Name Message -Value $null
+
+			$eventcheck = Query-RedRock -SQLQuery ("SELECT EventMessage AS Message,whenOccurred FROM Event WHERE EventType LIKE 'Cloud.Server.{0}Account%' AND ComputerName = '{1}' AND AccountName = '{2}' AND whenOccurred > Datefunc('now',-500)" -f $this.AccountType, $this.SourceName, $this.Username)
+
+			# if there are more than 0 events
+			if (($eventcheck | Measure-Object | Select-Object -ExpandProperty Count) -gt 0)
+			{
+				# set lastEvent to the most recent one
+				$lastEvent = $eventcheck | Sort-Object whenOccurred -Descending | Select-Object -First 1
+			}
+
 			$obj = New-Object PSCustomObject
 
 			$obj | Add-Member -MemberType NoteProperty -Name Type -Value $this.AccountType
@@ -213,6 +227,8 @@ class CloudSuiteAccount
 			$obj | Add-Member -MemberType NoteProperty -Name InheritedFrom -Value $rowace.InheritedFrom
 			$obj | Add-Member -MemberType NoteProperty -Name PASPermissions -Value $rowace.CloudSuitePermission.GrantString
 			$obj | Add-Member -MemberType NoteProperty -Name SSPermissions -Value $ssperms.Permissions
+			$obj | Add-Member -MemberType NoteProperty -Name LastEventTime -Value $lastEvent.whenOccurred
+			$obj | Add-Member -MemberType NoteProperty -Name LastEventMessage -Value $lastEvent.Message
 			$obj | Add-Member -MemberType NoteProperty -Name ID -Value $this.ID
 			
 			$ReviewedPermissions.Add($obj) | Out-Null

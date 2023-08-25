@@ -151,6 +151,20 @@ class CloudSuiteSecret
 		{
 			$ssperms = ConvertTo-SecretServerPermission -Type Self -Name $this.Name -RowAce $rowace
 
+			$lastEvent = New-Object PSCustomObject
+
+			$lastEvent | Add-Member -MemberType NoteProperty -Name whenOccurred -Value $null
+			$lastEvent | Add-Member -MemberType NoteProperty -Name Message -Value $null
+
+			$eventcheck = Query-RedRock -SQLQuery ("SELECT WhenOccurred,EventMessage AS Message FROM Event WHERE DataVaultItemID = '{0}' AND Event.WhenOccurred > Datefunc('now', -500)" -f $this.ID)
+			
+			# if there are more than 0 events
+			if (($eventcheck | Measure-Object | Select-Object -ExpandProperty Count) -gt 0)
+			{
+				# set lastEvent to the most recent one
+				$lastEvent = $eventcheck | Sort-Object whenOccurred -Descending | Select-Object -First 1
+			}
+
 			$obj = New-Object PSCustomObject
 
 			$obj | Add-Member -MemberType NoteProperty -Name Type -Value $this.Type
@@ -166,6 +180,8 @@ class CloudSuiteSecret
 			$obj | Add-Member -MemberType NoteProperty -Name InheritedFrom -Value $rowace.InheritedFrom
 			$obj | Add-Member -MemberType NoteProperty -Name PASPermissions -Value $rowace.CloudSuitePermission.GrantString
 			$obj | Add-Member -MemberType NoteProperty -Name SSPermissions -Value $ssperms.Permissions
+			$obj | Add-Member -MemberType NoteProperty -Name LastEventTime -Value $lastEvent.whenOccurred
+			$obj | Add-Member -MemberType NoteProperty -Name LastEventMessage -Value $lastEvent.Message
 			$obj | Add-Member -MemberType NoteProperty -Name ID -Value $this.ID
 			
 			$ReviewedPermissions.Add($obj) | Out-Null
