@@ -26,6 +26,8 @@ class MigratedCredential
 
 	getCloudSuiteSetsThatIAmAMemberOf()
 	{
+		$this.memberofSets.Clear()
+
 		$queries = Query-RedRock -SQLQuery ("SELECT ID,Name FROM Sets WHERE ObjectType = '{0}' AND CollectionType = 'ManualBucket'" -f $this.PASDataType)
 
 		foreach ($query in $queries)
@@ -43,6 +45,8 @@ class MigratedCredential
 
 	getCloudSuiteSetsThatIAmAMemberOf([PSCustomObject]$SetBank)
 	{
+		$this.memberofSets.Clear()
+		
 		$memberof = $SetBank.Sets | Where-Object {$_.Members.Key -contains $this.PASUUID}
 
 		foreach ($member in $memberof)
