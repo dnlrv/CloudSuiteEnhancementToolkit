@@ -50,20 +50,42 @@ function global:Get-CloudSuiteCollectionRowAce
     # for each rowace retrieved
     foreach ($collectionace in $CollectionAces)
     {
-        # ignore any global root entries
+        # ignore any global root or tech support entries
         if ($collectionace.Type -eq "GlobalRoot" -or $rowace.PrincipalName -eq "Technical Support Access")
         {
             continue
         }
 
+		# if the type is Super (from default global roles with read permissions)
+        if ($collectionace.Type -eq "Super")
+        {
+            # set the Grant to 4 instead of "Read"
+            [System.Int64]$collectionace.Grant = 4
+        }
+
+		# nulling out InheritedFrom
+		[System.String]$InheritedFrom = $null
+
+		# if this collectionace is inherited
+		if ($collectionace.Inherited)
+		{
+			Switch ($collectionace.Type)
+			{
+				"GlobalTable" { $InheritedFrom = "Global Settings"; break }
+				"Collection"  { $InheritedFrom = ("Set: {0}" -f $collectionace.CollectionName); break }
+				"Super"       { $InheritedFrom = ("Admin Right: {0}" -f $collectionace.SuperName); break }
+				default       { break }
+			}
+		}# if ($collectionace.Inherited)
+
         Try
         {
             # creating the cloudsuitepermission object
-            $cloudsuitepermission = [CloudSuitePermission]::new($Type, $collectionace.Grant, $collectionace.GrantStr)
+            $cloudsuitepermission = New-Object CloudSuitePermission -ArgumentList ($Type, $collectionace.Grant, $collectionace.GrantStr)
 
             # creating the PlatformRowAce object
-            $obj = [PermissionRowAce]::new($collectionace.PrincipalType, $collectionace.Principal, `
-            $collectionace.PrincipalName, $collectionace.Inherited, $cloudsuitepermission)
+            $obj = New-Object PermissionRowAce -ArgumentList ($collectionace.PrincipalType, $collectionace.Principal, `
+				$collectionace.PrincipalName, $collectionace.Inherited, $InheritedFrom, $cloudsuitepermission)
         }# Try
         Catch
         {

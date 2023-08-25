@@ -48,7 +48,7 @@ function global:Get-CloudSuiteRowAce
     # for each rowace retrieved
     foreach ($rowace in $RowAces)
     {
-        # ignore any global root entries
+        # ignore any global root or tech support entries
         if ($rowace.Type -eq "GlobalRoot" -or $rowace.PrincipalName -eq "Technical Support Access")
         {
             continue
@@ -61,6 +61,21 @@ function global:Get-CloudSuiteRowAce
             [System.Int64]$rowace.Grant = 4
         }
 
+		# nulling out InheritedFrom
+		[System.String]$InheritedFrom = $null
+
+		# if this rowace is inherited
+		if ($rowace.Inherited)
+		{
+			Switch ($rowace.Type)
+			{
+				"GlobalTable" { $InheritedFrom = "Global Settings"; break }
+				"Collection"  { $InheritedFrom = ("Set: {0}" -f $rowace.CollectionName); break }
+				"Super"       { $InheritedFrom = ("Admin Right: {0}" -f $rowace.SuperName); break }
+				default       { break }
+			}
+		}# if ($rowace.Inherited)
+
         Try
         {
             # creating the CloudSuitePermission object
@@ -68,7 +83,7 @@ function global:Get-CloudSuiteRowAce
 
             # creating the CloudSuiteRowAce object
             $obj = New-Object PermissionRowAce -ArgumentList ($rowace.PrincipalType, $rowace.Principal, `
-				$rowace.PrincipalName, $rowace.Inherited, $CloudSuitepermission)
+				$rowace.PrincipalName, $rowace.Inherited, $InheritedFrom, $CloudSuitepermission)
         }# Try
         Catch
         {

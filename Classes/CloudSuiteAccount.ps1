@@ -210,6 +210,7 @@ class CloudSuiteAccount
 			$obj | Add-Member -MemberType NoteProperty -Name PrincipalType -Value $rowace.PrincipalType
 			$obj | Add-Member -MemberType NoteProperty -Name PrincipalName -Value $rowace.PrincipalName
 			$obj | Add-Member -MemberType NoteProperty -Name isInherited -Value $rowace.isInherited
+			$obj | Add-Member -MemberType NoteProperty -Name InheritedFrom -Value $rowace.InheritedFrom
 			$obj | Add-Member -MemberType NoteProperty -Name PASPermissions -Value $rowace.CloudSuitePermission.GrantString
 			$obj | Add-Member -MemberType NoteProperty -Name SSPermissions -Value $ssperms.Permissions
 			$obj | Add-Member -MemberType NoteProperty -Name ID -Value $this.ID
