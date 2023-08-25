@@ -14,6 +14,7 @@ class CloudSuiteSet
     [System.Collections.ArrayList]$MembersUuid = @{} # the Uuids of the members
     [System.Collections.ArrayList]$SetMembers  = @{} # the members of this set
     [System.String]$PotentialOwner                   # a guess as to who possibly owns this set
+	[System.Collections.ArrayList]$SetEvents = @{}
 
     CloudSuiteSet() {}
 
@@ -132,4 +133,27 @@ class CloudSuiteSet
 
         return $CloudSuiteObjects
     }# [PSCustomObject]getCloudSuiteObjects()
+
+	getSetEvents()
+	{
+		$this.SetEvents.Clear()
+
+		$events = Query-RedRock -SQLQuery ("SELECT EventType,EventMessage AS Message,NormalizedUser AS User,whenOccurred FROM Event Where EntityUuid = '{0}' AND whenOccurred > Datefunc('now',-500)" -f $this.ID)
+
+		# if there is more than 0 events
+		if (($events | Measure-Object | Select-Object -ExpandProperty Count) -gt 0)
+		{
+			foreach ($event in $events)
+			{
+				$obj = New-Object CloudSuiteSetEvent
+
+				$obj.EventType    = $event.EventType
+				$obj.Message      = $event.Message
+				$obj.User         = $event.User
+				$obj.whenOccurred = $event.whenOccurred
+				
+				$this.SetEvents.Add($obj) | Out-Null
+			}# foreach ($event in $events)
+		}# if ($events.Count -gt 0)
+	}# getSetEvents()
 }# class CloudSuiteSet
