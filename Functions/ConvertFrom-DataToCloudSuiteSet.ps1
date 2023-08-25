@@ -88,14 +88,18 @@ function global:ConvertFrom-DataToCloudSuiteSet
         foreach ($setmember in $cloudsuiteset.SetMembers)
         {
             # create a new SetMember object from that setmember data
-			$setmem = New-Object SetMember -ArgumentList ($setmember.Name, $setmember.Type, $setmember.Uuid)
+			$setmem = New-Object SetMember -ArgumentList ($setmember.Name, $setmember.Uuid)
 
             # add it to our SetMembers ArrayList
             $obj.SetMembers.Add($setmem) | Out-Null
         }# foreach ($setmember in $cloudsuiteset.SetMembers)
 
-		# adding the member Uuids
-		$obj.MembersUuid.AddRange(@($cloudsuiteset.MembersUuid)) | Out-Null
+
+		# adding member Uuids if there is something to add
+		if (($cloudsuiteset.MembersUuid | Measure-Object | Select-Object -ExpandProperty Count) -gt 0)
+		{
+			$obj.MembersUuid.AddRange(@($cloudsuiteset.MembersUuid)) | Out-Null
+		}
 
         # add this object to our return ArrayList
         $NewCloudSuiteSets.Add($obj) | Out-Null

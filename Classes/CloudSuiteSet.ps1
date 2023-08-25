@@ -86,7 +86,7 @@ class CloudSuiteSet
                 }
 
                 # new SetMember
-                $tmp = New-Object SetMember -ArgumentList ($obj.Name,$i.Table,$obj.Uuid)
+                $tmp = New-Object SetMember -ARgumentList ($obj.Name,$obj.Uuid)
 
                 # adding the Uuids to the Members property
                 $this.MembersUuid.Add(($i.Key)) | Out-Null
