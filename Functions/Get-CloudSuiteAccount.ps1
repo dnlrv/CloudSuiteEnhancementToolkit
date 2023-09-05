@@ -78,6 +78,10 @@ function global:Get-CloudSuiteAccount
     C:\PS> Get-CloudSuiteAccount -SourceName "LINUXSERVER01.DOMAIN.COM"
     Get all Account objects who's source (parent) object is LINUXSERVER01.DOMAIN.COM.
 
+	.EXAMPLE
+	C:\PS> Get-CloudSuiteAccount -SourceName "LINUXSERVER01.DOMAIN.COM" -Username "root"
+    Get the root account objects who's source (parent) object is LINUXSERVER01.DOMAIN.COM.
+
     .EXAMPLE
     C:\PS> Get-CloudSuiteAccount -Uuid "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
     Get an Account object with the specified UUID.
@@ -85,20 +89,21 @@ function global:Get-CloudSuiteAccount
     [CmdletBinding(DefaultParameterSetName="All")]
     param
     (
-        [Parameter(Mandatory = $false, HelpMessage = "The type of Account to search.", ParameterSetName = "Type")]
+        [Parameter(Mandatory = $false, HelpMessage = "The type of Account to search.", ParameterSetName = "Search")]
         [ValidateSet("Local","Domain","Database","Cloud")]
         [System.String]$Type,
 
-        [Parameter(Mandatory = $false, HelpMessage = "The name of the Source of the Account to search.", ParameterSetName = "Source")]
+        [Parameter(Mandatory = $false, HelpMessage = "The name of the Source of the Account to search.", ParameterSetName = "Search")]
         [System.String]$SourceName,
 
-        [Parameter(Mandatory = $false, HelpMessage = "The name of the Account to search.", ParameterSetName = "UserName")]
+        [Parameter(Mandatory = $false, HelpMessage = "The name of the Account to search.", ParameterSetName = "Search")]
         [System.String]$UserName,
 
         [Parameter(Mandatory = $false, HelpMessage = "The Uuid of the Account to search.",ParameterSetName = "Uuid")]
         [System.String]$Uuid,
 
-        [Parameter(Mandatory = $false, HelpMessage = "A limit on number of objects to query.")]
+        [Parameter(Mandatory = $false, HelpMessage = "A limit on number of objects to query.", ParameterSetName = "All")]
+		[Parameter(Mandatory = $false, HelpMessage = "A limit on number of objects to query.", ParameterSetName = "Search")]
         [System.Int32]$Limit
     )
 
