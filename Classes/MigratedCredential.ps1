@@ -57,6 +57,20 @@ class MigratedCredential
 		$this.determineConflicts()
 	}# getCloudSuiteSetsThatIAmAMemberOf()([PSCustomObject]$SetBank)
 
+	getCloudSuiteSetsThatIAmAMemberOf([PSCustomObject]$SetBank, [PSCustomObject]$Sets)
+	{
+		$this.memberofSets.Clear()
+		
+		$memberof = $SetBank.Sets | Where-Object {$_.Members.Key -contains $this.PASUUID}
+
+		foreach ($member in $memberof)
+		{
+			$this.memberofSets.Add(($Sets | Where-Object {$_.ID -eq $member.Uuid})) | Out-Null
+		}
+
+		$this.determineConflicts()
+	}# getCloudSuiteSetsThatIAmAMemberOf([PSCustomObject]$SetBank, [PSCustomObject]$Sets)
+
     determineConflicts()
     {
 		if (($this.memberofSets | Measure-Object | Select-Object -ExpandProperty Count) -gt 1)
