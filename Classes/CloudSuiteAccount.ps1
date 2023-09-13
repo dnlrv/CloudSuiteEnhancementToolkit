@@ -6,6 +6,8 @@ class CloudSuiteAccount
     [System.String]$SourceName
     [System.String]$SourceType
     [System.String]$SourceID
+	[System.String]$SourceHealthStatus
+	[System.DateTime]$SourceLastHealthCheck
     [System.String]$Username
     [System.String]$ID
     [System.Boolean]$isManaged
@@ -34,15 +36,27 @@ class CloudSuiteAccount
         $this.AccountType = $t
         $this.ComputerClass = $account.ComputerClass
         $this.SourceName = $account.Name
+		
+		# tablename for source parent information
+		[System.String]$sourcetable = $null
 
         # the tenant holds the source object's ID in different columns
         Switch ($this.AccountType)
         {
-            "Database" { $this.SourceID = $account.DatabaseID; $this.SourceType = "DatabaseId"; break }
-            "Domain"   { $this.SourceID = $account.DomainID; $this.SourceType = "DomainId"; break }
-            "Local"    { $this.SourceID = $account.Host; $this.SourceType = "Host"; break }
+            "Database" { $this.SourceID = $account.DatabaseID; $this.SourceType = "DatabaseId"; $sourcetable = "VaultDatabase"; break }
+            "Domain"   { $this.SourceID = $account.DomainID; $this.SourceType = "DomainId"; $sourcetable = "VaultDomain"; break }
+            "Local"    { $this.SourceID = $account.Host; $this.SourceType = "Host"; $sourcetable = "Server"; break }
             "Cloud"    { $this.SourceID = $account.CloudProviderID; $this.SourceType = "CloudProviderId"; break }
         }
+
+		# getting and adding parent reachability information
+		if ($sourcetable -ne $null)
+		{
+			$parentstatus = Query-RedRock -SQLQuery ("SELECT HealthStatus,LastHealthCheck FROM {0} WHERE ID = '{1}'" -f $sourcetable, $this.SourceID)
+
+			$this.SourceHealthStatus = $parentstatus.HealthStatus
+			$this.SourceLastHealthCheck = $parentstatus.LastHealthCheck
+		}# if ($sourcetable -ne $null)
 
         # accounting for null
         if ($account.LastHealthCheck -ne $null)
@@ -230,7 +244,13 @@ class CloudSuiteAccount
 			$obj = New-Object PSCustomObject
 
 			$obj | Add-Member -MemberType NoteProperty -Name Type -Value $this.AccountType
-			$obj | Add-Member -MemberType NoteProperty -Name Source -Value $this.SourceName
+			$obj | Add-Member -MemberType NoteProperty -Name SourceName -Value $this.SourceName
+			$obj | Add-Member -MemberType NoteProperty -Name SourceHealthStatus -Value $this.SourceHealthStatus
+			$obj | Add-Member -MemberType NoteProperty -Name SourceLastHealthCheck -Value $this.SourceLastHealthCheck
+			$obj | Add-Member -MemberType NoteProperty -Name SourceDatabaseClass -Value $this.DatabaseClass
+			$obj | Add-Member -MemberType NoteProperty -Name SourceDatabasePort -Value $this.DatabasePort
+			$obj | Add-Member -MemberType NoteProperty -Name SourceDatabaseServiceName -Value $this.DatabaseServiceName
+			$obj | Add-Member -MemberType NoteProperty -Name SourceDatabaseSSLEnabled -Value $this.DatabaseSSLEnabled
 			$obj | Add-Member -MemberType NoteProperty -Name Username -Value $this.Username
 			$obj | Add-Member -MemberType NoteProperty -Name isManaged -Value $this.isManaged
 			$obj | Add-Member -MemberType NoteProperty -Name Healthy -Value $this.Healthy

@@ -49,6 +49,7 @@ function global:ConvertFrom-DataToCloudSuiteAccount
         $obj.SourceName          = $CloudSuiteaccount.SourceName
         $obj.SourceType          = $CloudSuiteaccount.SourceType
         $obj.SourceID            = $CloudSuiteaccount.SourceID
+		$obj.SourceHealthStatus  = $CloudSuiteaccount.SourceHealthStatus
         $obj.Username            = $CloudSuiteaccount.Username
         $obj.ID                  = $CloudSuiteaccount.ID
         $obj.isManaged           = $CloudSuiteaccount.isManaged
@@ -64,9 +65,10 @@ function global:ConvertFrom-DataToCloudSuiteAccount
 		$obj.DatabaseSSLEnabled  = $CloudSuiteaccount.DatabaseSSLEnabled
 
         # DateTime null checks
-        if ($CloudSuiteaccount.LastChange -ne $null)      { $obj.LastChange      = $CloudSuiteaccount.LastChange      }
-        if ($CloudSuiteaccount.LastHealthCheck -ne $null) { $obj.LastHealthCheck = $CloudSuiteaccount.LastHealthCheck }
-
+        if ($CloudSuiteaccount.LastChange -ne $null)            { $obj.LastChange      = $CloudSuiteaccount.LastChange      }
+        if ($CloudSuiteaccount.LastHealthCheck -ne $null)       { $obj.LastHealthCheck = $CloudSuiteaccount.LastHealthCheck }
+		if ($CloudSuiteaccount.SourceLastHealthCheck -ne $null) { $obj.SourceLastHealthCheck = $CloudSuiteaccount.SourceLastHealthCheck }
+		
 		# if the vault is not null
         if ($CloudSuiteaccount.Vault -ne $null)
 		{
