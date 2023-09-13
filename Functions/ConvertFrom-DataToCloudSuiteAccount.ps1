@@ -59,9 +59,9 @@ function global:ConvertFrom-DataToCloudSuiteAccount
         $obj.SSName              = $CloudSuiteaccount.SSName
         $obj.CheckOutID          = $CloudSuiteaccount.CheckOutID
 		$obj.DatabaseClass       = $CloudSuiteaccount.DatabaseClass
-		$obj.DatabasePort        = $CloudSuiteaccount.Port
-		$obj.DatabaseServiceName = $CloudSuiteaccount.ServiceName
-		$obj.DatabaseSSLEnabled  = $CloudSuiteaccount.SslEnabled
+		$obj.DatabasePort        = $CloudSuiteaccount.DatabasePort
+		$obj.DatabaseServiceName = $CloudSuiteaccount.DatabaseServiceName
+		$obj.DatabaseSSLEnabled  = $CloudSuiteaccount.DatabaseSSLEnabled
 
         # DateTime null checks
         if ($CloudSuiteaccount.LastChange -ne $null)      { $obj.LastChange      = $CloudSuiteaccount.LastChange      }
