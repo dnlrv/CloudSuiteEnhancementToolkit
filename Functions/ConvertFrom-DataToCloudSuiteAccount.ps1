@@ -44,20 +44,24 @@ function global:ConvertFrom-DataToCloudSuiteAccount
         $obj = New-Object CloudSuiteAccount
 
         # copying information over
-        $obj.AccountType     = $CloudSuiteaccount.AccountType
-        $obj.ComputerClass   = $CloudSuiteaccount.ComputerClass
-        $obj.SourceName      = $CloudSuiteaccount.SourceName
-        $obj.SourceType      = $CloudSuiteaccount.SourceType
-        $obj.SourceID        = $CloudSuiteaccount.SourceID
-        $obj.Username        = $CloudSuiteaccount.Username
-        $obj.ID              = $CloudSuiteaccount.ID
-        $obj.isManaged       = $CloudSuiteaccount.isManaged
-        $obj.Healthy         = $CloudSuiteaccount.Healthy
-        $obj.Password        = $CloudSuiteaccount.Password
-        $obj.Description     = $CloudSuiteaccount.Description
-        $obj.WorkflowEnabled = $CloudSuiteaccount.WorkflowEnabled
-        $obj.SSName          = $CloudSuiteaccount.SSName
-        $obj.CheckOutID      = $CloudSuiteaccount.CheckOutID
+        $obj.AccountType         = $CloudSuiteaccount.AccountType
+        $obj.ComputerClass       = $CloudSuiteaccount.ComputerClass
+        $obj.SourceName          = $CloudSuiteaccount.SourceName
+        $obj.SourceType          = $CloudSuiteaccount.SourceType
+        $obj.SourceID            = $CloudSuiteaccount.SourceID
+        $obj.Username            = $CloudSuiteaccount.Username
+        $obj.ID                  = $CloudSuiteaccount.ID
+        $obj.isManaged           = $CloudSuiteaccount.isManaged
+        $obj.Healthy             = $CloudSuiteaccount.Healthy
+        $obj.Password            = $CloudSuiteaccount.Password
+        $obj.Description         = $CloudSuiteaccount.Description
+        $obj.WorkflowEnabled     = $CloudSuiteaccount.WorkflowEnabled
+        $obj.SSName              = $CloudSuiteaccount.SSName
+        $obj.CheckOutID          = $CloudSuiteaccount.CheckOutID
+		$obj.DatabaseClass       = $CloudSuiteaccount.DatabaseClass
+		$obj.DatabasePort        = $CloudSuiteaccount.Port
+		$obj.DatabaseServiceName = $CloudSuiteaccount.ServiceName
+		$obj.DatabaseSSLEnabled  = $CloudSuiteaccount.SslEnabled
 
         # DateTime null checks
         if ($CloudSuiteaccount.LastChange -ne $null)      { $obj.LastChange      = $CloudSuiteaccount.LastChange      }

@@ -20,6 +20,10 @@ class CloudSuiteAccount
     [PSCustomObject]$Vault
     [System.String]$SSName
     [System.String]$CheckOutID
+	[System.String]$DatabaseClass
+	[System.String]$DatabasePort
+	[System.String]$DatabaseServiceName
+	[System.Boolean]$DatabaseSSLEnabled
 	[System.Collections.ArrayList]$AccountEvents = @{}
 
     CloudSuiteAccount() {}
@@ -80,6 +84,17 @@ class CloudSuiteAccount
         {
             $this.WorkflowApprovers = Prepare-WorkflowApprovers -Approvers ($account.WorkflowApproversList | ConvertFrom-Json)
         }
+
+		# extra bits for Database accounts
+		if ($this.AccountType -eq "Database")
+		{
+			$databasequery = Query-RedRock -SQLQuery ("SELECT DatabaseClass,Port,ServiceName,SslEnabled FROM VaultDatabase WHERE ID = '{0}'" -f $this.SourceID)
+
+			$this.DatabaseClass       = $databasequery.DatabaseClass
+			$this.DatabasePort        = $databasequery.Port
+			$this.DatabaseServiceName = $databasequery.ServiceName
+			$this.DatabaseSSLEnabled  = $databasequery.SslEnabled
+		}# if ($this.AccountType -eq "Database")
 
     }# CloudSuiteAccount($account)
 
