@@ -3,6 +3,8 @@ class CloudSuiteAccount
 {
     [System.String]$AccountType
     [System.String]$ComputerClass
+	[System.String]$CredentialType
+	[System.String]$CredentialId
     [System.String]$SourceName
     [System.String]$SourceType
     [System.String]$SourceID
@@ -34,6 +36,7 @@ class CloudSuiteAccount
     {
        
         $this.AccountType = $t
+		$this.CredentialType = $account.CredentialType
         $this.ComputerClass = $account.ComputerClass
         $this.SourceName = $account.Name
 		
