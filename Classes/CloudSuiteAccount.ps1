@@ -5,6 +5,7 @@ class CloudSuiteAccount
     [System.String]$ComputerClass
 	[System.String]$CredentialType
 	[System.String]$CredentialId
+	[System.String]$CredentialName
     [System.String]$SourceName
     [System.String]$SourceType
     [System.String]$SourceID
@@ -37,8 +38,16 @@ class CloudSuiteAccount
        
         $this.AccountType = $t
 		$this.CredentialType = $account.CredentialType
+		$this.CredentialId = $account.CredentialId
         $this.ComputerClass = $account.ComputerClass
         $this.SourceName = $account.Name
+
+		# getting the SSH key name if SSHKey is used
+		if ($this.CredentialType -eq "SshKey")
+		{
+			$sshkeyquery = (Query-RedRock -SQLQuery "SELECT Name FROM SSHKeys WHERE ID = '{0}" -f $this.CredentialId) | Select-Object -ExpandProperty Name
+			$this.CredentialName = $sshkeyquery
+		}
 		
 		# tablename for source parent information
 		[System.String]$sourcetable = $null

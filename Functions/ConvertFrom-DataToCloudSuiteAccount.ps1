@@ -48,6 +48,7 @@ function global:ConvertFrom-DataToCloudSuiteAccount
         $obj.ComputerClass       = $CloudSuiteaccount.ComputerClass
 		$obj.CredentialType      = $CloudSuiteaccount.CredentialType
 		$obj.CredentialId        = $CloudSuiteaccount.CredentialId
+		$obj.CredentialName      = $CloudSuiteaccount.CredentialName
         $obj.SourceName          = $CloudSuiteaccount.SourceName
         $obj.SourceType          = $CloudSuiteaccount.SourceType
         $obj.SourceID            = $CloudSuiteaccount.SourceID
