@@ -34,7 +34,7 @@ class CloudSuiteException
 	{
 		$this.APICall = $a
 		$this.Payload = $b
-		$this.Reponse = $r
+		$this.Response = $r
 	}
 
 	addData($k,$v)
