@@ -3,12 +3,13 @@ class CloudSuiteException
 {
 	[System.String]$Message
 	[System.String]$ErrorMessage
+	[System.DateTime]$ErroredOn
 	[System.String]$FullyQualifiedErrorId
 	[System.String]$Line
 	[System.Int32]$LineNumber
 	[System.Int32]$OffsetInLine
 	[hashtable]$Data = @{}
-	[System.Exception]$Exception
+	[PSCustomObject]$Exception
     [System.String]$APICall
     [System.String]$Payload
     [PSCustomObject]$Response
@@ -17,16 +18,18 @@ class CloudSuiteException
 	{
 		$this.Message = $m
 
-		$global:LastClousSuiteError = $this
+		$this.ErroredOn = (Get-Date).ToString()
+
+		$global:LastCloudSuiteError = $this
 	}
 
 	addExceptionData([PSCustomObject]$e)
 	{
 		$this.ErrorMessage          = $e.Exception.Message
-		$this.FullyQualifiedErrorId = $e.InnerException.ErrorRecord.FullyQualifiedErrorId
-		$this.Line                  = $e.InnvocationInfo.Line
-		$this.LineNumber            = $e.InnovcationInfo.ScriptLineNumber
-		$this.OffsetInLine          = $e.InnovcationInfo.OffsetInLine
+		$this.FullyQualifiedErrorId = $e.FullyQualifiedErrorId
+		$this.Line                  = $e.InvocationInfo.Line
+		$this.LineNumber            = $e.InvocationInfo.ScriptLineNumber
+		$this.OffsetInLine          = $e.InvocationInfo.OffsetInLine
 		$this.Exception             = $e
 	}# addExceptionData([PSCustomObject]$e)
 
@@ -49,6 +52,7 @@ class CloudSuiteException
 		$e = New-Object ScriptException -ArgumentList ("This errored here.")
 		$e.AddAPIData($apicall, $payload, $response)
 		$e.AddExceptionData($_)
+		$e.AddData("variablename",$variable)
 	}
 	#>
 }# class CloudSuiteException

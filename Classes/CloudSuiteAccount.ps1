@@ -45,9 +45,9 @@ class CloudSuiteAccount
 		# getting the SSH key name if SSHKey is used
 		if ($this.CredentialType -eq "SshKey")
 		{
-			$sshkeyquery = (Query-RedRock -SQLQuery "SELECT Name FROM SSHKeys WHERE ID = '{0}" -f $this.CredentialId) | Select-Object -ExpandProperty Name
+			$sshkeyquery = (Query-RedRock -SQLQuery "SELECT Name FROM SSHKeys WHERE ID = '{0}'" -f $this.CredentialId) | Select-Object -ExpandProperty Name
 			$this.CredentialName = $sshkeyquery
-		}
+		}# if ($this.CredentialType -eq "SshKey")
 		
 		# tablename for source parent information
 		[System.String]$sourcetable = $null
@@ -121,7 +121,6 @@ class CloudSuiteAccount
 			$this.DatabaseServiceName = $databasequery.ServiceName
 			$this.DatabaseSSLEnabled  = $databasequery.SslEnabled
 		}# if ($this.AccountType -eq "Database")
-
     }# CloudSuiteAccount($account)
 
     [System.Boolean] CheckInPassword()

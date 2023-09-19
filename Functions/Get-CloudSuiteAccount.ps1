@@ -150,8 +150,14 @@ function global:Get-CloudSuiteAccount
     # making the query for the IDs
     $basesqlquery = Query-RedRock -SQLQuery $query
 
+	Write-Verbose ("basesqlquery objects [{0}]" -f $basesqlquery.Count)
+
     # ArrayList to hold objects
     $queries = New-Object System.Collections.ArrayList
+
+	# synchronized arraylists to hold our error and account stacks
+	$errorstack = [System.Collections.ArrayList]::Synchronized((New-Object System.Collections.ArrayList))
+	$accountstack = [System.Collections.ArrayList]::Synchronized((New-Object System.Collections.ArrayList))
     
     # if the base sqlquery isn't null
     if ($basesqlquery -ne $null)
@@ -185,7 +191,9 @@ function global:Get-CloudSuiteAccount
                 (
                     $CloudSuiteConnection,
                     $CloudSuiteSessionInformation,
-                    $query
+                    $query,
+					$errorstack,
+					$accountstack
                 )
                 $global:CloudSuiteConnection         = $CloudSuiteConnection
                 $global:CloudSuiteSessionInformation = $CloudSuiteSessionInformation
@@ -198,15 +206,29 @@ function global:Get-CloudSuiteAccount
                 if ($query.DatabaseID -ne $null)      { $accounttype = "Database" }
                 if ($query.Host -ne $null)            { $accounttype = "Local"    }
 
-                # create a new CloudSuite Account object
-                $account = New-Object CloudSuiteAccount -ArgumentList ($query, $accounttype)
+				$account = $null
 
-                return $account
-        
+				Try
+				{
+					# create a new CloudSuite Account object
+					$account = New-Object CloudSuiteAccount -ArgumentList ($query, $accounttype)
+					$accountstack.Add($account) | Out-Null
+				}
+				Catch
+				{
+					# if an error occurred during New-Object, create a new CloudSuiteException and return that with the relevant data
+					$e = New-Object CloudSuiteException -ArgumentList ("Error during New CloudSuiteAccount object.")
+					$e.AddExceptionData($_)
+					$e.AddData("query",$query)
+					$e.AddData("accounttype",$accounttype)
+					$errorstack.Add($e) | Out-Null
+				}# Catch
             })# [void]$PowerShell.AddScript(
             [void]$PowerShell.AddParameter('CloudSuiteConnection',$global:CloudSuiteConnection)
             [void]$PowerShell.AddParameter('CloudSuiteSessionInformation',$global:CloudSuiteSessionInformation)
             [void]$PowerShell.AddParameter('query',$query)
+			[void]$PowerShell.AddParameter('errorstack',$errorstack)
+			[void]$PowerShell.AddParameter('accountstack',$accountstack)
                 
             $JobObject = @{}
             $JobObject.Runspace   = $PowerShell.BeginInvoke()
@@ -229,17 +251,10 @@ function global:Get-CloudSuiteAccount
         return $false
     }
 
-	# converting back to CloudSuiteAccount because multithreaded objects return an Automation object Type
-  	$returned = ConvertFrom-DataToCloudSuiteAccount -DataAccounts $queries
+	# setting all the errored into the LastErrorStack
+	$global:LastErrorStack = $errorstack
 
-    # if the All parameter set was used
-    if ($PSCmdlet.ParameterSetName -eq "All")
-    {
-        $global:CloudSuiteAccountBank = $returned
-    }
-    
-    #return $returned
-    return $returned
+	return $accountstack
 }# function global:Get-CloudSuiteAccount
 #endregion
 ###########
