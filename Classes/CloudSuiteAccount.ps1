@@ -45,7 +45,7 @@ class CloudSuiteAccount
 		# getting the SSH key name if SSHKey is used
 		if ($this.CredentialType -eq "SshKey")
 		{
-			$sshkeyquery = (Query-RedRock -SQLQuery "SELECT Name FROM SSHKeys WHERE ID = '{0}'" -f $this.CredentialId) | Select-Object -ExpandProperty Name
+			$sshkeyquery = Query-RedRock -SQLQuery ("SELECT Name FROM SSHKeys WHERE ID = '{0}'" -f $this.CredentialId) | Select-Object -ExpandProperty Name
 			$this.CredentialName = $sshkeyquery
 		}# if ($this.CredentialType -eq "SshKey")
 		
@@ -258,6 +258,8 @@ class CloudSuiteAccount
 			$obj | Add-Member -MemberType NoteProperty -Name SourceName -Value $this.SourceName
 			$obj | Add-Member -MemberType NoteProperty -Name SourceHealthStatus -Value $this.SourceHealthStatus
 			$obj | Add-Member -MemberType NoteProperty -Name SourceLastHealthCheck -Value $this.SourceLastHealthCheck
+			$obj | Add-Member -MemberType NoteProperty -Name CredentialType -Value $this.CredentialType
+			$obj | Add-Member -MemberType NoteProperty -Name CredentialName -Value $this.CredentialName
 			$obj | Add-Member -MemberType NoteProperty -Name SourceDatabaseClass -Value $this.DatabaseClass
 			$obj | Add-Member -MemberType NoteProperty -Name SourceDatabasePort -Value $this.DatabasePort
 			$obj | Add-Member -MemberType NoteProperty -Name SourceDatabaseServiceName -Value $this.DatabaseServiceName
@@ -276,6 +278,7 @@ class CloudSuiteAccount
 			$obj | Add-Member -MemberType NoteProperty -Name LastEventTime -Value $lastEvent.whenOccurred
 			$obj | Add-Member -MemberType NoteProperty -Name LastEventMessage -Value $lastEvent.Message
 			$obj | Add-Member -MemberType NoteProperty -Name ID -Value $this.ID
+			$obj | Add-Member -MemberType NoteProperty -Name CredentialId -Value $this.CredentialId
 			
 			$ReviewedPermissions.Add($obj) | Out-Null
 		}# foreach ($rowace in $this.PermissionRowAces)
