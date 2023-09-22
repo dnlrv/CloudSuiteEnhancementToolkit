@@ -124,6 +124,21 @@ function global:ConvertFrom-DataToCloudSuiteAccount
 
 		# add these accountevents to our CloudSuiteAccount object
 		$obj.AccountEvents = $accountevents
+
+		# new ArrayList for the CloudSuiteAccount property
+		$policyoptions = New-Object System.Collections.ArrayList
+
+		# for each accountevent in our PolicyOptions object
+		foreach ($policyoption in $CloudSuiteaccount.PolicyOptions)
+		{
+			$options = New-Object CloudSuitePolicyOption -ArgumentList ($policyoption)
+
+			# add it to the accountevents ArrayList
+			$policyoptions.Add($options) | Out-Null
+		}# foreach ($policyoption in $CloudSuiteaccount.PolicyOptions)
+
+		# add these policyoptions to our CloudSuiteAccount object
+		$obj.PolicyOptions = $policyoptions
         
         # add this object to our return ArrayList
         $NewCloudSuiteAccounts.Add($obj) | Out-Null
