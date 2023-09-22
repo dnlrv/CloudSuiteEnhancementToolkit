@@ -322,7 +322,7 @@ function global:Connect-CloudSuiteTenant
 				                $Global:CloudSuiteConnection = $Connection
 
                                 # setting the splat for variable connection 
-                                $global:CloudSuiteSessionInformation = @{ WebSession = $CloudSuiteConnection.Session }
+								$global:CloudSuiteSessionInformation = @{ WebSession = $CloudSuiteConnection.Session ; ContentType = "application/json"}
 
                                 # if the $CloudSuiteConnections variable does not contain this Connection, add it
                                 if (-Not ($CloudSuiteConnections | Where-Object {$_.PodFqdn -eq $Connection.PodFqdn}))
