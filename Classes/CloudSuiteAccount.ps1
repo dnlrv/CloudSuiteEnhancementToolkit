@@ -30,6 +30,7 @@ class CloudSuiteAccount
 	[System.String]$DatabaseServiceName
 	[System.Boolean]$DatabaseSSLEnabled
 	[System.Collections.ArrayList]$AccountEvents = @{}
+	[System.Collections.ArrayList]$PolicyOptions = @{}
 
     CloudSuiteAccount() {}
 
@@ -229,6 +230,15 @@ class CloudSuiteAccount
 			}# foreach ($event in $events)
 		}# if ($events.Count -gt 0)
 	}# getAccountEvents()
+
+	getPolicyOptions()
+	{
+		$this.PolicyOptions.Clear()
+
+		$getpolicyoptions = Get-CloudSuitePolicyOptions -EntityId $this.ID -TableName VaultAccount
+
+		$this.PolicyOptions.AddRange(@($getpolicyoptions)) | Out-Null
+	}# getPolicyOptions()
 
 	[System.Collections.ArrayList] reviewPermissions()
 	{
