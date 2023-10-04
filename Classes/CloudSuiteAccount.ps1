@@ -29,6 +29,7 @@ class CloudSuiteAccount
 	[System.String]$DatabasePort
 	[System.String]$DatabaseServiceName
 	[System.Boolean]$DatabaseSSLEnabled
+	[PSCustomObject]$PasswordProfile
 	[System.Collections.ArrayList]$AccountEvents = @{}
 	[System.Collections.ArrayList]$PolicyOptions = @{}
 
@@ -230,6 +231,39 @@ class CloudSuiteAccount
 			}# foreach ($event in $events)
 		}# if ($events.Count -gt 0)
 	}# getAccountEvents()
+
+	getPasswordProfile()
+	{
+		# clearing out previous entries
+		$this.PasswordProfile = $null
+		$sourcetable = $null
+
+		# the tenant holds the source object's ID in different columns
+        Switch ($this.AccountType)
+        {
+            "Database" { $sourcetable = "VaultDatabase"; break }
+            "Domain"   { $sourcetable = "VaultDomain"; break }
+            "Local"    { $sourcetable = "Server"; break }
+			default    { break }
+        }# Switch ($this.AccountType)
+
+		# querying for the password profile ID from the source table
+		if ($passwordprofilequery = Query-RedRock -SQLQuery ("SELECT PasswordProfileID FROM {0} WHERE ID = '{1}'" -f $sourcetable, $this.SourceID) | Select-Object -ExpandProperty PasswordProfileID)
+		{
+			# hitting the relevant endpoint for the password profile get
+			$profiles = Invoke-CloudSuiteAPI -APICall ServerManage/GetPasswordProfiles -Body (@{ProfileTypes="All";RRFormat=$true} | ConvertTo-Json)
+
+			# filtering down to the relevant profile for the source
+			$thispasswordprofile = $profiles.Results.Row | Where-Object {$_.ID -eq $passwordprofilequery.Trim()}
+
+			# creating the new object and setting it as a property
+			$this.PasswordProfile = New-Object CloudSuitePasswordProfile -ArgumentList ($thispasswordprofile)
+		}
+		else
+		{
+			$this.PasswordProfile = "Default"
+		}
+	}# getPasswordProfile()
 
 	getPolicyOptions()
 	{
