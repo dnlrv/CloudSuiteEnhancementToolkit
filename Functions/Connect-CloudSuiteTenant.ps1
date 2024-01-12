@@ -161,7 +161,7 @@ function global:Connect-CloudSuiteTenant
 			
 			# Debug informations
 			Write-Debug ("Uri= {0}" -f $Uri)
-			Write-Debug ("Login= {0}" -f $UserName)
+			Write-Debug ("User= {0}" -f $User)
 			
 			# Format Json query
 			$Auth = @{}
