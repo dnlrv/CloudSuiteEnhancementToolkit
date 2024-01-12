@@ -4,10 +4,10 @@
 
 
 # get every script inside the Classes folder
-$classfolder = Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/DelineaPS/CloudSuiteEnhancementToolkit/tree/main/Classes'
+$classfolder = Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/dnlrv/CloudSuiteEnhancementToolkit/tree/login-debug/Classes'
 
 # get every script inside the Functions folder
-$functionfolder = Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/DelineaPS/CloudSuiteEnhancementToolkit/tree/main/Functions'
+$functionfolder = Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/dnlrv/CloudSuiteEnhancementToolkit/tree/login-debug/Functions'
 
 # parsing out the html for just the scripts in the classfolder (regex skipping any _*.ps1 scripts)
 $ClassScripts = ($classfolder.RawContent -replace '\s','') | Select-String 'Classes\/(?!_)([a-zA-Z]+\-?[a-zA-Z]+\.ps1)' -AllMatches | foreach {$_.matches.Value -replace 'Classes\/(.*)','$1'} | Sort-Object -Unique
