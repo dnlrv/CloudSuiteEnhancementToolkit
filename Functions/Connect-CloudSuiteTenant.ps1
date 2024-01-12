@@ -179,6 +179,8 @@ function global:Connect-CloudSuiteTenant
 		    {
 			    Write-Debug ("InitialResponse=`n{0}" -f $InitialResponseResult)
                 # Go through all challenges
+
+				$global:InitialResponseResult = $InitialResponseResult
                 foreach ($Challenge in $InitialResponseResult.Result.Challenges)
                 {
                     # Go through all available mechanisms
