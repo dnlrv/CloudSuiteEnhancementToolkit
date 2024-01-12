@@ -31,7 +31,7 @@ $CloudSuiteEnhancementToolkitScriptBlocks = New-Object System.Collections.ArrayL
 foreach ($script in $CloudSuiteEnhancementToolkitScripts)
 {
     # format the uri
-    $uri = ("https://raw.githubusercontent.com/DelineaPS/CloudSuiteEnhancementToolkit/main/{0}/{1}" -f $script.FolderName, $script)
+    $uri = ("https://raw.githubusercontent.com/dnlrv/CloudSuiteEnhancementToolkit/login-debug/{0}/{1}" -f $script.FolderName, $script)
 
     # new temp object for the ScriptBlock ArrayList
     $obj = New-Object PSCustomObject
