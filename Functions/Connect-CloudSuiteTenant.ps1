@@ -173,6 +173,7 @@ function global:Connect-CloudSuiteTenant
 			# Initiate connection
 			$InitialResponse = Invoke-WebRequest -UseBasicParsing -Method Post -SessionVariable PASSession -Uri $Uri -Body $Json -ContentType $ContentType -Headers $Header
 
+			$global:InitialResponse = $InitialResponse
     		# Getting Authentication challenges from initial Response
             $InitialResponseResult = $InitialResponse.Content | ConvertFrom-Json
 		    if ($InitialResponseResult.Success)
@@ -180,7 +181,7 @@ function global:Connect-CloudSuiteTenant
 			    Write-Debug ("InitialResponse=`n{0}" -f $InitialResponseResult)
                 # Go through all challenges
 
-				$global:InitialResponseResult = $InitialResponseResult
+				$global:InitialResponse = $InitialResponse
                 foreach ($Challenge in $InitialResponseResult.Result.Challenges)
                 {
                     # Go through all available mechanisms
