@@ -94,7 +94,8 @@ function global:Connect-CloudSuiteTenant
             }
             
             # Get Bearer Token from OAuth2 Client App
-			$BearerToken = Get-PlatformBearerToken -Url $Url -Client $Client -Secret $Secret -Scope $Scope
+			#$BearerToken = Get-PlatformBearerToken -Url $Url -Client $Client -Secret $Secret -Scope $Scope
+			$BearerToken  = $Secret
 
             # Validate Bearer Token and obtain Session details
             $Uri = ("https://{0}/Security/Whoami" -f $Url)
