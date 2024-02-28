@@ -68,6 +68,10 @@ function global:Get-CloudSuiteAccount
     .EXAMPLE
     C:\PS> Get-CloudSuiteAccount -Limit 10
     Gets 10 Account objects from the Delinea CloudSuite.
+	
+	.EXAMPLE
+    C:\PS> Get-CloudSuiteAccount -Limit 10 -Skip 10
+    Get the next 10 account objects in the tenant, skipping the first 10.
 
     .EXAMPLE
     C:\PS> Get-CloudSuiteAccount -Type Domain
@@ -89,13 +93,6 @@ function global:Get-CloudSuiteAccount
     C:\PS> Get-CloudSuiteAccount -Uuid "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
     Get an Account object with the specified UUID.
 
-	.EXAMPLE
-    C:\PS> Get-CloudSuiteAccount -Limit 1000
-    Get the first 1000 account objects in the tenant.
-
-	.EXAMPLE
-    C:\PS> Get-CloudSuiteAccount -Limit 1000 -Skip 1000
-    Get the next 1000 account objects in the tenant, skipping the first 1000.
     #>
     [CmdletBinding(DefaultParameterSetName="All")]
     param

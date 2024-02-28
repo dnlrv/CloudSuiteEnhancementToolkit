@@ -41,6 +41,9 @@ function global:Get-CloudSuiteSecret
     .PARAMETER Limit
     Limits the number of potential Secret objects returned.
 
+	.PARAMETER Skip
+    Used with the -Limit parameter, skips the number of records before returning results.
+
     .INPUTS
     None. You can't redirect or pipe input to this function.
 
@@ -55,6 +58,10 @@ function global:Get-CloudSuiteSecret
     C:\PS> Get-CloudSuiteSecret -Limit 10
     Gets 10 Secret objects from the Delinea Cloud Suite.
 
+	.EXAMPLE
+    C:\PS> Get-CloudSuiteSecret -Limit 10 -Skip 10
+    Get the next 10 Secret objects in the tenant, skipping the first 10.
+
     .EXAMPLE
     C:\PS> Get-CloudSuiteSecret -Name "License Keys"
     Gets all Secret objects with the Secret Name "License Keys".
@@ -66,6 +73,7 @@ function global:Get-CloudSuiteSecret
     .EXAMPLE
     C:\PS> Get-CloudSuiteSecret -Uuid "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
     Get a Secret object with the specified UUID.
+
     #>
     [CmdletBinding(DefaultParameterSetName="All")]
     param
@@ -81,7 +89,10 @@ function global:Get-CloudSuiteSecret
         [System.String]$Type,
 
         [Parameter(Mandatory = $false, HelpMessage = "Limits the number of results.")]
-        [System.Int32]$Limit
+        [System.Int32]$Limit,
+
+		[Parameter(Mandatory = $false, HelpMessage = "Skip these number of records first, used with Limit.")]
+        [System.Int32]$Skip
     )
 
     # verifying an active Cloud Suite connection
@@ -108,8 +119,17 @@ function global:Get-CloudSuiteSecret
         $query += ($extras -join " AND ")
     }# if ($PSCmdlet.ParameterSetName -ne "All")
 
-    # if Limit was used, append it to the query
-    if ($PSBoundParameters.ContainsKey("Limit")) { $query += (" LIMIT {0}" -f $Limit) }
+	# if Limit was used, append it to the query
+	if ($PSBoundParameters.ContainsKey("Limit")) 
+	{ 
+		$query += (" LIMIT {0}" -f $Limit) 
+
+		# if Offset was used, append it to the query
+		if ($PSBoundParameters.ContainsKey("Skip"))
+		{
+			$query += (" OFFSET {0}" -f $Skip) 
+		}
+	}# if ($PSBoundParameters.ContainsKey("Limit")) 
 
     Write-Verbose ("SQLQuery: [{0}]" -f $query)
 
