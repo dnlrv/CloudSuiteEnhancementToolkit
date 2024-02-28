@@ -156,4 +156,44 @@ class CloudSuiteSet
 			}# foreach ($event in $events)
 		}# if ($events.Count -gt 0)
 	}# getSetEvents()
+
+	[System.Collections.ArrayList] reviewPermissions()
+	{
+		$ReviewedPermissions = New-Object System.Collections.ArrayList
+
+		# going through Set permissions first
+		foreach ($rowace in $this.PermissionRowAces)
+		{
+			$obj = New-Object PSCustomObject
+
+			$obj | Add-Member -MemberType NoteProperty -Name OnObject -Value "Set"
+			$obj | Add-Member -MemberType NoteProperty -Name ObjectName -Value $this.Name
+			$obj | Add-Member -MemberType NoteProperty -Name PrincipalType -Value $rowace.PrincipalType
+			$obj | Add-Member -MemberType NoteProperty -Name PrincipalName -Value $rowace.PrincipalName
+			$obj | Add-Member -MemberType NoteProperty -Name isInherited -Value $rowace.isInherited
+			$obj | Add-Member -MemberType NoteProperty -Name InheritedFrom -Value $rowace.InheritedFrom
+			$obj | Add-Member -MemberType NoteProperty -Name PASPermissions -Value $rowace.CloudSuitePermission.GrantString
+			$obj | Add-Member -MemberType NoteProperty -Name SetID -Value $this.ID
+
+			$ReviewedPermissions.Add($obj) | Out-Null
+		}# foreach ($rowace in $this.PermissionRowAces)
+
+		# then go through Member permissions next
+		foreach ($memberrowace in $this.MemberPermissionRowAces)
+		{
+			$obj = New-Object PSCustomObject
+
+			$obj | Add-Member -MemberType NoteProperty -Name OnObject -Value "Member"
+			$obj | Add-Member -MemberType NoteProperty -Name ObjectName -Value $this.Name
+			$obj | Add-Member -MemberType NoteProperty -Name PrincipalType -Value $memberrowace.PrincipalType
+			$obj | Add-Member -MemberType NoteProperty -Name PrincipalName -Value $memberrowace.PrincipalName
+			$obj | Add-Member -MemberType NoteProperty -Name isInherited -Value $memberrowace.isInherited
+			$obj | Add-Member -MemberType NoteProperty -Name InheritedFrom -Value $memberrowace.InheritedFrom
+			$obj | Add-Member -MemberType NoteProperty -Name PASPermissions -Value $memberrowace.CloudSuitePermission.GrantString
+			$obj | Add-Member -MemberType NoteProperty -Name SetID -Value $this.ID
+
+			$ReviewedPermissions.Add($obj) | Out-Null
+		}# foreach ($memberrowace in $this.MemberPermissionRowAces)
+		return $ReviewedPermissions
+	}# [System.Collections.ArrayList] reviewPermissions()
 }# class CloudSuiteSet
