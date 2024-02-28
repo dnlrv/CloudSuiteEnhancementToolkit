@@ -51,6 +51,9 @@ function global:Get-CloudSuiteAccount
 
     .PARAMETER Limit
     Limits the number of potential Account objects returned.
+	
+	.PARAMETER Skip
+    Used with the -Limit parameter, skips the number of records before returning results.
 
     .INPUTS
     None. You can't redirect or pipe input to this function.
@@ -85,6 +88,14 @@ function global:Get-CloudSuiteAccount
     .EXAMPLE
     C:\PS> Get-CloudSuiteAccount -Uuid "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
     Get an Account object with the specified UUID.
+
+	.EXAMPLE
+    C:\PS> Get-CloudSuiteAccount -Limit 1000
+    Get the first 1000 account objects in the tenant.
+
+	.EXAMPLE
+    C:\PS> Get-CloudSuiteAccount -Limit 1000 -Skip 1000
+    Get the next 1000 account objects in the tenant, skipping the first 1000.
     #>
     [CmdletBinding(DefaultParameterSetName="All")]
     param
@@ -104,7 +115,11 @@ function global:Get-CloudSuiteAccount
 
         [Parameter(Mandatory = $false, HelpMessage = "A limit on number of objects to query.", ParameterSetName = "All")]
 		[Parameter(Mandatory = $false, HelpMessage = "A limit on number of objects to query.", ParameterSetName = "Search")]
-        [System.Int32]$Limit
+        [System.Int32]$Limit,
+
+		[Parameter(Mandatory = $false, HelpMessage = "Skip these number of records first, used with Limit.", ParameterSetName = "All")]
+		[Parameter(Mandatory = $false, HelpMessage = "Skip these number of records first, used with Limit.", ParameterSetName = "Search")]
+        [System.Int32]$Skip
     )
 
     # verifying an active CloudSuite connection
@@ -143,7 +158,16 @@ function global:Get-CloudSuiteAccount
     }# if ($PSCmdlet.ParameterSetName -ne "All")
 
     # if Limit was used, append it to the query
-    if ($PSBoundParameters.ContainsKey("Limit")) { $query += (" LIMIT {0}" -f $Limit) }
+    if ($PSBoundParameters.ContainsKey("Limit")) 
+	{ 
+		$query += (" LIMIT {0}" -f $Limit) 
+
+		# if Offset was used, append it to the query
+		if ($PSBoundParameters.ContainsKey("Skip"))
+		{
+			$query += (" OFFSET {0}" -f $Skip) 
+		}
+	}# if ($PSBoundParameters.ContainsKey("Limit")) 
 
     Write-Verbose ("SQLQuery: [{0}]" -f $query)
 
