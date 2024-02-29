@@ -167,6 +167,7 @@ class CloudSuiteSet
 			$obj = New-Object PSCustomObject
 
 			$obj | Add-Member -MemberType NoteProperty -Name OnObject -Value "Set"
+			$obj | Add-Member -MemberType NoteProperty -Name ObjectType -Value $this.ObjectType
 			$obj | Add-Member -MemberType NoteProperty -Name ObjectName -Value $this.Name
 			$obj | Add-Member -MemberType NoteProperty -Name PrincipalType -Value $rowace.PrincipalType
 			$obj | Add-Member -MemberType NoteProperty -Name PrincipalName -Value $rowace.PrincipalName
@@ -184,6 +185,7 @@ class CloudSuiteSet
 			$obj = New-Object PSCustomObject
 
 			$obj | Add-Member -MemberType NoteProperty -Name OnObject -Value "Member"
+			$obj | Add-Member -MemberType NoteProperty -Name ObjectType -Value $this.ObjectType
 			$obj | Add-Member -MemberType NoteProperty -Name ObjectName -Value $this.Name
 			$obj | Add-Member -MemberType NoteProperty -Name PrincipalType -Value $memberrowace.PrincipalType
 			$obj | Add-Member -MemberType NoteProperty -Name PrincipalName -Value $memberrowace.PrincipalName
