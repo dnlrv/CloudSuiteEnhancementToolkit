@@ -115,7 +115,7 @@ class CloudSuiteSecret
                 }
 
                 # create the file
-                Invoke-RestMethod -Method Get -Uri $this.SecretFilePath -OutFile ("{0}\{1}" -f $this.ParentPath, $fullfilename) @global:SessionInformation
+                Invoke-RestMethod -Method Get -Uri $this.SecretFilePath -OutFile ("{0}\{1}" -f $this.ParentPath, $fullfilename) @global:CloudSuiteSessionInformation
                 break
             }# "File" # File secrets will be created as their current file name
         }# Switch ($this.Type)
