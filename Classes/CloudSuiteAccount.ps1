@@ -24,6 +24,7 @@ class CloudSuiteAccount
     [PSCustomObject[]]$WorkflowApprovers # the workflow approvers for this Account
     [PSCustomObject]$Vault
     [System.String]$SSName
+	[System.String]$SSSecretTemplate
     [System.String]$CheckOutID
 	[System.String]$DatabaseClass
 	[System.String]$DatabasePort
@@ -50,7 +51,23 @@ class CloudSuiteAccount
 			$sshkeyquery = Query-RedRock -SQLQuery ("SELECT Name FROM SSHKeys WHERE ID = '{0}'" -f $this.CredentialId) | Select-Object -ExpandProperty Name
 			$this.CredentialName = $sshkeyquery
 		}# if ($this.CredentialType -eq "SshKey")
-		
+
+		# setting the Secret Server Template (if possible)
+		if ($this.ComputerClass -eq "Windows")
+		{
+			$this.SSSecretTemplate = "WindowsAccount"
+		}
+
+		if ($this.AccountType -eq "Domain")
+		{
+			$this.SSSecretTemplate = "ActiveDirectory"
+		}
+
+		if ($this.AccountType -eq "Local" -and $this.ComputerClass -eq "Unix" -and $this.CredentialType -eq "Password")
+		{
+			$this.SSSecretTemplate = "UnixAccountSSH"
+		}
+
 		# tablename for source parent information
 		[System.String]$sourcetable = $null
 
@@ -417,4 +434,41 @@ class CloudSuiteAccount
 		}
 		return $clearpassword
 	}# [System.String]decryptPassword()
+
+	[PSCustomObject]exportToSSCCSV()
+	{
+		$output = $null
+
+		switch ($this.SSSecretTemplate)
+		{
+			"ActiveDirectory"
+			{
+				$output = $this | Select-Object @{label="Secret Name";Expression={$this.SSName}},`
+									  @{label="Domain";Expression={$this.SourceName}},`
+									  @{label="Username";Expression={$this.Username}},`
+									  @{label="Password";Expression={$this.Password}},`
+									  @{label="Notes";Expression={$this.Description}}
+				break
+			}
+			"WindowsAccount"
+			{
+				$output = $this | Select-Object @{label="Secret Name";Expression={$this.SSName}},`
+									  @{label="Machine";Expression={$this.SourceName}},`
+									  @{label="Username";Expression={$this.Username}},`
+									  @{label="Password";Expression={$this.Password}},`
+									  @{label="Notes";Expression={$this.Description}}
+			}
+			"UnixAccountSSH"
+			{
+				$output = $this | Select-Object @{label="Secret Name";Expression={$this.SSName}},`
+									  @{label="Machine";Expression={$this.SourceName}},`
+									  @{label="Username";Expression={$this.Username}},`
+									  @{label="Password";Expression={$this.Password}},`
+									  @{label="Notes";Expression={$this.Description}}
+			}
+			default { break }
+		}# switch ($this.SSSecretTemplate)
+
+		return $output
+	}# [PSCustomObject]exportToSSCCSV()
 }# class CloudSuiteAccount
