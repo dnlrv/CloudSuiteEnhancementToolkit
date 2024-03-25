@@ -236,7 +236,7 @@ function global:Connect-CloudSuiteTenant
                             $Auth.Action = "Answer"
                             # Prompt for User answer using SecureString to mask typing
                             $SecureString = Read-Host $ChosenMechanism.PromptMechChosen -AsSecureString
-                            $Auth.Answer = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString))
+                            $Auth.Answer = $(ConvertFrom-SecureString -SecureString $secureString -AsPlainText)
                         }
                         
                         "StartTextOob" # Out-of-bounds Authentication (User need to take action other than through typed answer)
