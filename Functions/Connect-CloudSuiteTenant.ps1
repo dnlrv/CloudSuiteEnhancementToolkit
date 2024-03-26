@@ -236,7 +236,14 @@ function global:Connect-CloudSuiteTenant
                             $Auth.Action = "Answer"
                             # Prompt for User answer using SecureString to mask typing
                             $SecureString = Read-Host $ChosenMechanism.PromptMechChosen -AsSecureString
-                            $Auth.Answer = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString))
+
+                            if([System.Environment]::OSVersion.Platform -like "Win32*"){
+                                $Auth.Answer = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString))
+                            # Made this so it could kinda work on CentOS 9; This is the way it has be for Linux to decrypt priv string
+                            }elseif([System.Environment]::OSVersion.Platform -eq "Unix"){
+                                $Auth.Answer = $(ConvertFrom-SecureString -SecureString $secureString -AsPlainText)
+                            }else{
+                                throw [System.SystemException]::new("Somehow OS was missed. Need to stop NOW.")}
                         }
                         
                         "StartTextOob" # Out-of-bounds Authentication (User need to take action other than through typed answer)
