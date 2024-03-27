@@ -94,7 +94,7 @@ function global:Connect-CloudSuiteTenant
             }
             
             # Get Bearer Token from OAuth2 Client App
-			$BearerToken = Get-PlatformBearerToken -Url $Url -Client $Client -Secret $Secret -Scope $Scope
+			$BearerToken = Get-CloudSuiteBearerToken -Url $Url -Client $Client -Secret $Secret -Scope $Scope
 
             # Validate Bearer Token and obtain Session details
             $Uri = ("https://{0}/Security/Whoami" -f $Url)
@@ -134,7 +134,7 @@ function global:Connect-CloudSuiteTenant
                 if (-Not ($CloudSuiteConnections | Where-Object {$_.PodFqdn -eq $Connection.PodFqdn}))
                 {
                     # add a new CloudSuiteConnection object and add it to our $CloudSuiteConnectionsList
-                    $obj = New-Object -ArgumentList ($Connection.PodFqdn, $Connection, $global:CloudSuiteSessionInformation)
+                    $obj = New-Object CloudSuiteConnection -ArgumentList ($Connection.PodFqdn, $Connection, $global:CloudSuiteSessionInformation)
 					$global:CloudSuiteConnections.Add($obj) | Out-Null
                 }
 				
