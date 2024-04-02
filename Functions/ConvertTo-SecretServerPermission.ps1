@@ -7,7 +7,7 @@ function global:ConvertTo-SecretServerPermission
     param
     (
         [Parameter(Mandatory = $true, HelpMessage = "Type")]
-        [ValidateSet("Self","Set","Folder")]
+        [ValidateSet("Self","Set","Folder","SetMember")]
         $Type,
 
         [Parameter(Mandatory = $true, HelpMessage = "Name")]

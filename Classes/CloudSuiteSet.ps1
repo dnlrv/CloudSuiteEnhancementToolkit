@@ -164,6 +164,8 @@ class CloudSuiteSet
 		# going through Set permissions first
 		foreach ($rowace in $this.PermissionRowAces)
 		{
+			$ssperms = ConvertTo-SecretServerPermission -Type Set -Name $this.Name -RowAce $rowace
+
 			$obj = New-Object PSCustomObject
 
 			$obj | Add-Member -MemberType NoteProperty -Name OnObject -Value "Set"
@@ -174,6 +176,7 @@ class CloudSuiteSet
 			$obj | Add-Member -MemberType NoteProperty -Name isInherited -Value $rowace.isInherited
 			$obj | Add-Member -MemberType NoteProperty -Name InheritedFrom -Value $rowace.InheritedFrom
 			$obj | Add-Member -MemberType NoteProperty -Name PASPermissions -Value $rowace.CloudSuitePermission.GrantString
+			$obj | Add-Member -MemberType NoteProperty -Name SSPermissions -Value $ssperms.Permissions
 			$obj | Add-Member -MemberType NoteProperty -Name SetID -Value $this.ID
 
 			$ReviewedPermissions.Add($obj) | Out-Null
@@ -182,6 +185,8 @@ class CloudSuiteSet
 		# then go through Member permissions next
 		foreach ($memberrowace in $this.MemberPermissionRowAces)
 		{
+			$ssperms = ConvertTo-SecretServerPermission -Type SetMember -Name $this.Name -RowAce $memberrowace
+
 			$obj = New-Object PSCustomObject
 
 			$obj | Add-Member -MemberType NoteProperty -Name OnObject -Value "Member"
@@ -192,6 +197,7 @@ class CloudSuiteSet
 			$obj | Add-Member -MemberType NoteProperty -Name isInherited -Value $memberrowace.isInherited
 			$obj | Add-Member -MemberType NoteProperty -Name InheritedFrom -Value $memberrowace.InheritedFrom
 			$obj | Add-Member -MemberType NoteProperty -Name PASPermissions -Value $memberrowace.CloudSuitePermission.GrantString
+			$obj | Add-Member -MemberType NoteProperty -Name SSPermissions -Value $ssperms.Permissions
 			$obj | Add-Member -MemberType NoteProperty -Name SetID -Value $this.ID
 
 			$ReviewedPermissions.Add($obj) | Out-Null

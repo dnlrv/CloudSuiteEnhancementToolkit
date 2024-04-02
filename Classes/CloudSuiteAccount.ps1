@@ -471,4 +471,46 @@ class CloudSuiteAccount
 
 		return $output
 	}# [PSCustomObject]exportToSSCCSV()
+
+	[PSCustomObject]exportToSSCCSV([System.String]$folderpath)
+	{
+		$output = $null
+
+		switch ($this.SSSecretTemplate)
+		{
+			"ActiveDirectory"
+			{
+				$output = $this | Select-Object @{label="Secret Name";Expression={$this.SSName}},`
+									  @{label="Domain";Expression={$this.SourceName}},`
+									  @{label="Username";Expression={$this.Username}},`
+									  @{label="Password";Expression={$this.Password}},`
+									  @{label="Notes";Expression={$this.Description}},`
+									  @{label="Folder Name";Expression={$folderpath}}
+				break
+			}
+			"WindowsAccount"
+			{
+				$output = $this | Select-Object @{label="Secret Name";Expression={$this.SSName}},`
+									  @{label="Machine";Expression={$this.SourceName}},`
+									  @{label="Username";Expression={$this.Username}},`
+									  @{label="Password";Expression={$this.Password}},`
+									  @{label="Notes";Expression={$this.Description}},`
+									  @{label="Folder Name";Expression={$folderpath}}
+				break
+			}
+			"UnixAccountSSH"
+			{
+				$output = $this | Select-Object @{label="Secret Name";Expression={$this.SSName}},`
+									  @{label="Machine";Expression={$this.SourceName}},`
+									  @{label="Username";Expression={$this.Username}},`
+									  @{label="Password";Expression={$this.Password}},`
+									  @{label="Notes";Expression={$this.Description}},`
+									  @{label="Folder Name";Expression={$folderpath}}
+				break
+			}
+			default { break }
+		}# switch ($this.SSSecretTemplate)
+
+		return $output
+	}# [PSCustomObject]exportToSSCCSV([System.String]$folderpath)
 }# class CloudSuiteAccount
