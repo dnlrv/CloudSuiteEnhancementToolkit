@@ -178,13 +178,10 @@ function global:Find-SetConflicts
 		# placeholder for the name
 		$namequery = $null
 
-		# resetting the counters, this only applies to VaultAccount
-		$g, $p = 0
-
 		# base on which set type it is, get the name of the object using its uuid
 		Switch ($settype)
 		{
-			"VaultAccount" { $namequery = Get-CloudSuiteAccount -Uuid $conflictinguuid | Select-Object -ExpandProperty SSName; break}
+			"VaultAccount" { $namequery = Query-RedRock -SQLQuery ("SELECT (Name || '\' || User) AS Name FROM VaultAccount WHERE ID = '{0}'" -f $conflictinguuid) | Select-Object -ExpandProperty Name; break }
 			"Server"       { $namequery = Query-RedRock -SQLQuery ("SELECT Name FROM Server WHERE ID = '{0}'" -f $conflictinguuid) | Select-Object -ExpandProperty Name; break }
 			"DataVault"    { $namequery = Query-RedRock -SQLQuery ("SELECT SecretName FROM DataVault WHERE ID = '{0}'" -f $conflictinguuid) | Select-Object -ExpandProperty Name; break }
 			default        { $namequery = "UNKNOWNTYPE"; break }
