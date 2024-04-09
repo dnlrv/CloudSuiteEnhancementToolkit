@@ -109,7 +109,7 @@ function global:Connect-CloudSuiteTenant
 			# Format Json query
 			$Json = @{} | ConvertTo-Json
 			
-			# Connect using Certificate
+			# Connect using Bearer Token
 			$WebResponse = Invoke-WebRequest -UseBasicParsing -Method Post -SessionVariable PASSession -Uri $Uri -Body $Json -ContentType $ContentType -Headers $Header
             $WebResponseResult = $WebResponse.Content | ConvertFrom-Json
             if ($WebResponseResult.Success)
@@ -153,8 +153,10 @@ function global:Connect-CloudSuiteTenant
             {
                 $Url = $Url.Substring(8)
             }
+			
             # Setup variable for interactive connection using MFA
 			$Uri = ("https://{0}/Security/StartAuthentication" -f $Url)
+			$BaseUrl = $Url.split(".")[1..$Url.Length] -join '.'
 			$ContentType = "application/json" 
 			$Header = @{ "X-CENTRIFY-NATIVE-CLIENT" = "1" }
 			Write-Host ("Connecting to Delinea Platform (https://{0}) as {1}`n" -f $Url, $User)
@@ -175,8 +177,60 @@ function global:Connect-CloudSuiteTenant
 
     		# Getting Authentication challenges from initial Response
             $InitialResponseResult = $InitialResponse.Content | ConvertFrom-Json
+
 		    if ($InitialResponseResult.Success)
 		    {
+				# testing for Federation Redirect
+				# if the IdpRedirectUrl property is not null or empty
+				if (-Not ([System.String]::IsNullOrEmpty($InitialResponseResult.Result.IdpRedirectUrl)))
+				{
+					# get the relay state
+					$relaystate = $InitialResponseResult.Result.IdpRedirectUrl -replace '^.*?&RelayState=(.*?)&SigAlg=.*$','$1'
+
+					# getting the SamlResponse, derived from https://github.com/allynl93/getSAMLResponse-Interactive/blob/main/PowerShell%20New-SAMLInteractive%20Module/PS-SAML-Interactive.psm1
+					$SamlResponse = New-SAMLInteractive -LoginIDP $InitialResponseResult.Result.IdpRedirectUrl
+
+					# preparing the body response back to PAS/CloudSuite
+					$bodyresponse = ("SAMLResponse={0}&RelayState={1}" -f [System.Web.HttpUtility]::UrlEncode($samlresponse), $relaystate)
+
+					# get the TenantID from the URL
+					$TenantID = (Resolve-DnsName -Name $Url).NameHost[0].Split(".")[0]
+
+					# this is now getting me the ASPXAUTH
+					$aftersaml = Invoke-WebRequest -Method Post -Uri ('https://{0}.{1}/home' -f $TenantID, $BaseUrl) -Body ("{0}" -f $bodyresponse) -WebSession $PASSession
+
+					# setting up the regex to grab the AuthData
+					$regex = '\s*var AuthData = ({.*?}});'
+
+					# grabbing the AuthData line from the raw html content, this is to parse out Connection details
+					$authdataline = [regex]::Match($aftersaml.RawContent,$regex,[System.Text.RegularExpressions.RegexOptions]::Singleline).Groups[0].Value
+
+					# getting the JSON form of the AuthData property
+					$authdatajson = ($authdataline -replace '.*var AuthData = (.*}});.*','$1') | ConvertFrom-Json
+
+					# building the custom CloudSuiteConnection object
+					$CloudSuiteConnection = New-Object PSCustomObject
+
+					# setting addition properties manually
+					$CloudSuiteConnection | Add-Member -MemberType NoteProperty -Name AuthLevel -Value $authdatajson.AmIAuthenticated.AuthLevel
+					$CloudSuiteConnection | Add-Member -MemberType NoteProperty -Name DisplayName -Value $authdatajson.AmIAuthenticated.DisplayName
+					$CloudSuiteConnection | Add-Member -MemberType NoteProperty -Name UserId -Value $authdatajson.AmIAuthenticated.UserId
+					$CloudSuiteConnection | Add-Member -MemberType NoteProperty -Name PodFqdn -Value ("{0}.{1}" -f $TenantID, $BaseUrl)
+					$CloudSuiteConnection | Add-Member -MemberType NoteProperty -Name TenantID -Value $TenantID
+					$CloudSuiteConnection | Add-Member -MemberType NoteProperty -Name SourceDsType -Value $authdatajson.AmIAuthenticated.SourceDsType
+					$CloudSuiteConnection | Add-Member -MemberType NoteProperty -Name Session -Value $PASSession
+
+					# Set Connection as global
+					$global:CloudSuiteConnection = $CloudSuiteConnection
+
+					# setting the splat for variable connection 
+					$global:CloudSuiteSessionInformation = @{ WebSession = $CloudSuiteConnection.Session ; ContentType = "application/json"}
+
+					# Return information values to confirm connection success
+					return ($CloudSuiteConnection | Select-Object -Property TenantID, UserId, PodFqdn | Format-List)
+
+				}# if (-Not ([System.String]::IsNullOrEmpty($InitialResponseResult.Result.IdpRedirectUrl)))
+
 			    Write-Debug ("InitialResponse=`n{0}" -f $InitialResponseResult)
                 # Go through all challenges
                 foreach ($Challenge in $InitialResponseResult.Result.Challenges)

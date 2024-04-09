@@ -12,16 +12,20 @@ One benefit of this method is when updates/fixes/enhancements are made to the re
 $CloudSuiteEnhancementToolkit = ([ScriptBlock]::Create(((Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/DelineaPS/CloudSuiteEnhancementToolkit/main/CloudSuiteEnhancementToolkit.ps1').Content))); . $CloudSuiteEnhancementToolkit
 ```
 
-## CloudSuiteEnhancementToolkit (Local)
+## CloudSuiteEnhancementToolkit (Local Grab)
 If you want to run all of this locally, download all the scripts in this repo to a local folder, and run the primary script with the following:
 
 ```
 . .\CloudSuiteEnhancementToolkit_local.ps1
 ```
 
+# Disclaimer
+
+The contents (scripts, documentation, examples) included in this repository are not supported under any Delinea standard support program, agreement, or service. The code is provided AS IS without warranty of any kind. Delinea further disclaims all implied warranties, including, without limitation, any implied warranties of merchantability or fitness for a particular purpose. The entire risk arising out of the code and content's use or performance remains with you. In no event shall Delinea, its authors, or anyone else involved in the creation, production, or delivery of the content be liable for any damages whatsoever (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss) arising out of the use of or inability to use the code or content, even if Delinea has been advised of the possibility of such damages.
+
 # How to use
 
-After the above loading snippets are run, you can see the list of cmdlets available within this module within the following snippet:
+After using the Cloud Grab or Local Grab, you can see the list of cmdlets available within this module within the following snippet:
 
 ```
 $CloudSuiteEnhancementToolkitScriptBlocks | Where {$_.Type -eq "Function"}
@@ -35,9 +39,10 @@ First you need to connect to your tenant with `Connect-CloudSuiteTenant`. Here i
 Connect-CloudSuiteTenant -Url mytenant.my.centrify.net -User mycloudadmin@domain.com
 ```
 
-You will be prompted for a password and whatever MFA challenge is associated with that login.
+*Federated Users* - a small popup will occur that will have you log into your Federated IdP. Once you complete authentication, the pop should close and you should be back in the PowerShell session.
 
-**Known issue:** Federated Users will not work here. Use a Centrify Directory user instead.
+*Non-Federated Users* - You will be prompted for a password and whatever MFA challenge is associated with that login.
+
 
 ## Once Connected
 
