@@ -157,6 +157,29 @@ class CloudSuiteSet
 		}# if ($events.Count -gt 0)
 	}# getSetEvents()
 
+	getSetEvents([System.Int32]$days)
+	{
+		$this.SetEvents.Clear()
+
+		$events = Query-RedRock -SQLQuery ("SELECT EventType,EventMessage AS Message,NormalizedUser AS User,whenOccurred FROM Event Where EntityUuid = '{0}' AND whenOccurred > Datefunc('now',{1})" -f $this.ID, $days)
+
+		# if there is more than 0 events
+		if (($events | Measure-Object | Select-Object -ExpandProperty Count) -gt 0)
+		{
+			foreach ($event in $events)
+			{
+				$obj = New-Object CloudSuiteSetEvent
+
+				$obj.EventType    = $event.EventType
+				$obj.Message      = $event.Message
+				$obj.User         = $event.User
+				$obj.whenOccurred = $event.whenOccurred
+				
+				$this.SetEvents.Add($obj) | Out-Null
+			}# foreach ($event in $events)
+		}# if ($events.Count -gt 0)
+	}# getSetEvents()
+
 	[System.Collections.ArrayList] reviewPermissions()
 	{
 		$ReviewedPermissions = New-Object System.Collections.ArrayList
