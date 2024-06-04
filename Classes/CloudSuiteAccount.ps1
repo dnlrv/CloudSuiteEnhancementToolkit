@@ -229,7 +229,31 @@ class CloudSuiteAccount
 	{
 		$this.AccountEvents.Clear()
 
-		$events = Query-RedRock -SQLQuery ("SELECT EventType,EventMessage AS Message,ComputerName AS SourceName,AccountName,NormalizedUser AS User,whenOccurred FROM Event Where EventType LIKE 'Cloud.Server.{0}Account%' AND ComputerName = '{1}' AND AccountName = '{2}' AND whenOccurred > Datefunc('now',-365)" -f $this.AccountType, $this.SourceName, $this.Username)
+		$events = Query-RedRock -SQLQuery ("SELECT EventType,EventMessage AS Message,ComputerName AS SourceName,AccountName,NormalizedUser AS User,whenOccurred FROM Event Where EventType LIKE 'Cloud.Server.{0}Account%' AND ComputerName = '{1}' AND AccountName = '{2}' AND whenOccurred > Datefunc('now',-90)" -f $this.AccountType, $this.SourceName, $this.Username)
+
+		if ($events.Count -gt 0)
+		{
+			foreach ($event in $events)
+			{
+				$obj = New-Object CloudSuiteAccountEvent
+
+				$obj.EventType    = $event.EventType
+				$obj.Message      = $event.Message
+				$obj.SourceName   = $event.SourceName
+				$obj.AccountName  = $event.AccountName
+				$obj.User         = $event.user
+				$obj.whenOccurred = $event.whenOccurred
+				
+				$this.AccountEvents.Add($obj) | Out-Null
+			}# foreach ($event in $events)
+		}# if ($events.Count -gt 0)
+	}# getAccountEvents()
+
+	getAccountEvents([System.Int32]$days)
+	{
+		$this.AccountEvents.Clear()
+
+		$events = Query-RedRock -SQLQuery ("SELECT EventType,EventMessage AS Message,ComputerName AS SourceName,AccountName,NormalizedUser AS User,whenOccurred FROM Event Where EventType LIKE 'Cloud.Server.{0}Account%' AND ComputerName = '{1}' AND AccountName = '{2}' AND whenOccurred > Datefunc('now',{3})" -f $this.AccountType, $this.SourceName, $this.Username, $days)
 
 		if ($events.Count -gt 0)
 		{
@@ -304,7 +328,7 @@ class CloudSuiteAccount
 			$lastEvent | Add-Member -MemberType NoteProperty -Name whenOccurred -Value $null
 			$lastEvent | Add-Member -MemberType NoteProperty -Name Message -Value $null
 
-			$eventcheck = Query-RedRock -SQLQuery ("SELECT EventMessage AS Message,whenOccurred FROM Event WHERE EventType LIKE 'Cloud.Server.{0}Account%' AND ComputerName = '{1}' AND AccountName = '{2}' AND whenOccurred > Datefunc('now',-500)" -f $this.AccountType, $this.SourceName, $this.Username)
+			$eventcheck = Query-RedRock -SQLQuery ("SELECT EventMessage AS Message,whenOccurred FROM Event WHERE EventType LIKE 'Cloud.Server.{0}Account%' AND ComputerName = '{1}' AND AccountName = '{2}' AND whenOccurred > Datefunc('now',-90)" -f $this.AccountType, $this.SourceName, $this.Username)
 
 			# if there are more than 0 events
 			if (($eventcheck | Measure-Object | Select-Object -ExpandProperty Count) -gt 0)
