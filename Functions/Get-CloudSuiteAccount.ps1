@@ -273,8 +273,8 @@ function global:Get-CloudSuiteAccount
     }
 
 	# closing the pool
-	$RunspacePool.Close()
-	$RunspacePool.Dispose()
+	#$RunspacePool.Close()
+	#$RunspacePool.Dispose()
 
 	# setting all the errored into the LastErrorStack
 	$global:LastErrorStack = $errorstack
