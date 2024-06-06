@@ -126,10 +126,18 @@ class CloudSuiteSet
             default        { Write-Host "This set type not supported yet."; return $false ; break }
         }# Switch ($this.ObjectType)
 
-        foreach ($id in $this.MembersUuid)
-        {
-            Invoke-Expression -Command ('[void]$CloudSuiteObjects.Add(({0} -Uuid {1}))' -f $command, $id)
-        }
+		
+		if ($this.ObjectType -eq "VaultAccount")
+		{
+			Invoke-Expression -Command ('[void]$CloudSuiteObjects.AddRange(@(Get-CloudSuiteAccount -Uuid {0}))' -f (($this.MembersUuid -replace '^(.*)$',"'`$1'") -join ","))
+		}
+		else
+		{
+			foreach ($id in $this.MembersUuid)
+			{
+			    Invoke-Expression -Command ('[void]$CloudSuiteObjects.Add(({0} -Uuid {1}))' -f $command, $id)
+			}
+		}
 
         return $CloudSuiteObjects
     }# [PSCustomObject]getCloudSuiteObjects()

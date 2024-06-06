@@ -108,7 +108,7 @@ function global:Get-CloudSuiteAccount
         [System.String]$UserName,
 
         [Parameter(Mandatory = $false, HelpMessage = "The Uuid of the Account to search.",ParameterSetName = "Uuid")]
-        [System.String]$Uuid,
+        [System.String[]]$Uuid,
 
         [Parameter(Mandatory = $false, HelpMessage = "A limit on number of objects to query.", ParameterSetName = "All")]
 		[Parameter(Mandatory = $false, HelpMessage = "A limit on number of objects to query.", ParameterSetName = "Search")]
@@ -148,10 +148,11 @@ function global:Get-CloudSuiteAccount
         
         if ($PSBoundParameters.ContainsKey("SourceName")) { $extras.Add(("Name = '{0}'" -f $SourceName)) | Out-Null }
         if ($PSBoundParameters.ContainsKey("UserName"))   { $extras.Add(("User = '{0}'" -f $UserName))   | Out-Null }
-        if ($PSBoundParameters.ContainsKey("Uuid"))       { $extras.Add(("ID = '{0}'"   -f $Uuid))       | Out-Null }
+		if ($PSBoundParameters.ContainsKey("Uuid")) { $extras.Add("ID IN ({0})" -f (($Uuid -replace '^(.*)$',"'`$1'") -join ",")) | Out-Null }
 
-        # join them together with " AND " and append it to the query
-        $query += ($extras -join " AND ")
+		# join them together with " AND " and append it to the query
+		$query += ($extras -join " AND ")
+		
     }# if ($PSCmdlet.ParameterSetName -ne "All")
 
     # if Limit was used, append it to the query
