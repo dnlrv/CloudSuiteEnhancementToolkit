@@ -317,25 +317,30 @@ class CloudSuiteAccount
 
 	[System.Collections.ArrayList] reviewPermissions()
 	{
+		if (($this.PasswordProfile | Measure-Object | Select-Object -ExpandProperty Count) -eq 0) { $this.getPasswordProfile() }
+		if (($this.PolicyOptions   | Measure-Object | Select-Object -ExpandProperty Count) -eq 0) { $this.getPolicyOptions()   }
+
 		$ReviewedPermissions = New-Object System.Collections.ArrayList
 
 		foreach ($rowace in $this.PermissionRowAces)
 		{
 			$ssperms = ConvertTo-SecretServerPermission -Type Self -Name $this.SSName -RowAce $rowace
 
-			$lastEvent = New-Object PSCustomObject
+			<# Disabled since for large PAS tenants, this can take forever
+			#$lastEvent = New-Object PSCustomObject
 
-			$lastEvent | Add-Member -MemberType NoteProperty -Name whenOccurred -Value $null
-			$lastEvent | Add-Member -MemberType NoteProperty -Name Message -Value $null
+			#$lastEvent | Add-Member -MemberType NoteProperty -Name whenOccurred -Value $null
+			#$lastEvent | Add-Member -MemberType NoteProperty -Name Message -Value $null
 
-			$eventcheck = Query-RedRock -SQLQuery ("SELECT EventMessage AS Message,whenOccurred FROM Event WHERE EventType LIKE 'Cloud.Server.{0}Account%' AND ComputerName = '{1}' AND AccountName = '{2}' AND whenOccurred > Datefunc('now',-90)" -f $this.AccountType, $this.SourceName, $this.Username)
+			#$eventcheck = Query-RedRock -SQLQuery ("SELECT EventMessage AS Message,whenOccurred FROM Event WHERE EventType LIKE 'Cloud.Server.{0}Account%' AND ComputerName = '{1}' AND AccountName = '{2}' AND whenOccurred > Datefunc('now',-90)" -f $this.AccountType, $this.SourceName, $this.Username)
 
 			# if there are more than 0 events
-			if (($eventcheck | Measure-Object | Select-Object -ExpandProperty Count) -gt 0)
-			{
+			#if (($eventcheck | Measure-Object | Select-Object -ExpandProperty Count) -gt 0)
+			#{
 				# set lastEvent to the most recent one
-				$lastEvent = $eventcheck | Sort-Object whenOccurred -Descending | Select-Object -First 1
-			}
+			#	$lastEvent = $eventcheck | Sort-Object whenOccurred -Descending | Select-Object -First 1
+			#}
+			#>
 
 			$obj = New-Object PSCustomObject
 
@@ -360,8 +365,13 @@ class CloudSuiteAccount
 			$obj | Add-Member -MemberType NoteProperty -Name InheritedFrom -Value $rowace.InheritedFrom
 			$obj | Add-Member -MemberType NoteProperty -Name PASPermissions -Value $rowace.CloudSuitePermission.GrantString
 			$obj | Add-Member -MemberType NoteProperty -Name SSPermissions -Value $ssperms.Permissions
-			$obj | Add-Member -MemberType NoteProperty -Name LastEventTime -Value $lastEvent.whenOccurred
-			$obj | Add-Member -MemberType NoteProperty -Name LastEventMessage -Value $lastEvent.Message
+			#$obj | Add-Member -MemberType NoteProperty -Name LastEventTime -Value $lastEvent.whenOccurred
+			#$obj | Add-Member -MemberType NoteProperty -Name LastEventMessage -Value $lastEvent.Message
+			$obj | Add-Member -MemberType NoteProperty -Name PasswordProfile -Value $this.PasswordProfile
+			$obj | Add-Member -MemberType NoteProperty -Name DefaultCheckoutTime -Value ($this.PolicyOptions | Where-Object -Property PolicyOption -eq "/PAS/VaultAccount/DefaultCheckoutTime" | Select-Object -ExpandProperty PolicyValue)
+			$obj | Add-Member -MemberType NoteProperty -Name DefaultCheckoutTimeSourcePolicy -Value ($this.PolicyOptions | Where-Object -Property PolicyOption -eq "/PAS/VaultAccount/DefaultCheckoutTime" | Select-Object -ExpandProperty fromPolicy)
+			$obj | Add-Member -MemberType NoteProperty -Name PasswordRotationDuration -Value ($this.PolicyOptions | Where-Object -Property PolicyOption -eq "/PAS/ConfigurationSetting/VaultAccount/PasswordRotateDuration" | Select-Object -ExpandProperty PolicyValue)
+			$obj | Add-Member -MemberType NoteProperty -Name PasswordRotationDurationSourcePolicy -Value ($this.PolicyOptions | Where-Object -Property PolicyOption -eq "/PAS/ConfigurationSetting/VaultAccount/PasswordRotateDuration" | Select-Object -ExpandProperty fromPolicy)
 			$obj | Add-Member -MemberType NoteProperty -Name ID -Value $this.ID
 			$obj | Add-Member -MemberType NoteProperty -Name CredentialId -Value $this.CredentialId
 			
