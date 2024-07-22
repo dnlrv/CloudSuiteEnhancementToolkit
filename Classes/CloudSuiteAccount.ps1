@@ -32,6 +32,7 @@ class CloudSuiteAccount
 	[System.Boolean]$DatabaseSSLEnabled
 	[PSCustomObject]$PasswordProfile
 	[System.Collections.ArrayList]$AccountEvents = @{}
+	[System.Collections.ArrayList]$AccountActivity = @{}
 	[System.Collections.ArrayList]$PolicyOptions = @{}
 
     CloudSuiteAccount() {}
@@ -50,6 +51,7 @@ class CloudSuiteAccount
 		{
 			$sshkeyquery = Query-RedRock -SQLQuery ("SELECT Name FROM SSHKeys WHERE ID = '{0}'" -f $this.CredentialId) | Select-Object -ExpandProperty Name
 			$this.CredentialName = $sshkeyquery
+			$this.SSSecretTemplate = "UNIXSSHKey"
 		}# if ($this.CredentialType -eq "SshKey")
 
 		# setting the Secret Server Template (if possible)
@@ -67,6 +69,12 @@ class CloudSuiteAccount
 		{
 			$this.SSSecretTemplate = "UnixAccountSSH"
 		}
+
+		# if SSecretTemplate is still blank by this point, set it to other
+		#if ([System.String]::IsNullorEmpty($this.SSSecretTemplate))
+		#{
+		#	$this.SSSecretTemplate = "Other"
+		#}
 
 		# tablename for source parent information
 		[System.String]$sourcetable = $null
@@ -547,4 +555,16 @@ class CloudSuiteAccount
 
 		return $output
 	}# [PSCustomObject]exportToSSCCSV([System.String]$folderpath)
+
+	getAccountActivity()
+	{
+		$this.AccountActivity.Clear()
+
+		$activities = Query-RedRock -SQLQuery ("@/lib/server/get_activity_for_account.js(id:'{0}')" -f $this.ID)
+
+		if (($activities | Measure-Object | Select-Object -ExpandProperty Count) -gt 0)
+		{
+			$this.AccountActivity.AddRange(@($activities)) | Out-Null
+		}
+	}# getAccountActivity()
 }# class CloudSuiteAccount
